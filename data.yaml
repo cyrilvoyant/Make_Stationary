@@ -1,0 +1,10 @@
+@context: https://schema.org/
+@type: SoftwareSourceCode
+name: Make_Stationary
+url: https://github.com/cyrilvoyant/Make_Stationary
+programmingLanguage: MATLAB
+license: GPL-3.0
+author:
+  name: Cyril Voyant
+  url: https://cyrilvoyant.com
+  orcid: https://orcid.org/0000-0003-0242-7377
