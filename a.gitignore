@@ -1,0 +1,42 @@
+# MATLAB project files
+*.asv
+*.mex*
+*.mat
+*.fig
+*.mlx
+*.mlapp
+*.mltbx
+*.autosave
+
+# Backup / temp files
+*.bak
+*~
+*.tmp
+*.log
+
+# Generated folders
+slprj/
+sccprj/
+codegen/
+deriv/
+work/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Jupyter (si tu utilises du python)
+.ipynb_checkpoints/
+
+# Data files to avoid versioning (optionnel)
+*.csv
+*.xlsx
+*.xls
+*.h5
+Data/
+data/
