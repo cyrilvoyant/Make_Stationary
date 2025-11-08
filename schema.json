@@ -1,0 +1,16 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "SoftwareSourceCode",
+  "name": "Make_Stationary",
+  "description": "MATLAB implementation of a deseasonalization operator based on ELM and phase-conditioned projection.",
+  "url": "https://github.com/cyrilvoyant/Make_Stationary",
+  "codeRepository": "https://github.com/cyrilvoyant/Make_Stationary",
+  "programmingLanguage": "MATLAB",
+  "author": {
+    "@type": "Person",
+    "name": "Cyril Voyant",
+    "url": "https://cyrilvoyant.com",
+    "identifier": "https://orcid.org/0000-0003-0242-7377"
+  },
+  "license": "GPL-3.0"
+}
