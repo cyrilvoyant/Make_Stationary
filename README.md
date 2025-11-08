@@ -1,53 +1,34 @@
-Make_Stationary
+# Make_Stationary
 
-MATLAB implementation of a lightweight deseasonalization operator for hourly PV and GHI time series.
-The method uses a ridge-regularized Extreme Learning Machine (ELM) and a phase-conditioned projection to isolate dominant cyclic components (day/night and seasonal cycles). The resulting residuals are more stationary, evaluated using PACF-based metrics. 
-Features:
+MATLAB implementation of a lightweight deseasonalization operator for hourly PV and GHI time series.  
+The method relies on a ridge-regularized Extreme Learning Machine (ELM) and a phase-conditioned projection to extract dominant cyclic components (diurnal and annual). The residual signal becomes substantially more stationary, quantified through PACF-based indicators.
 
-    Deseasonalization of hourly PV or GHI data using a single-hidden-layer ELM.
+## Features
+- Deseasonalization of hourly PV/GHI data using a single-hidden-layer ELM.
+- Phase-only model for extracting the seasonal component without multi-year averages or harmonic tuning.
+- Stationarity diagnostics based on PACFsum.
+- Works with any hourly cyclic time series of at least two consecutive years.
+- Optional hyperparameter search for lag length (`LagH`) and hidden layer size (`m`).
+- Optional visualisation (3-D surface / contour) of the PACF-based objective function.
 
-    Phase-only projection to extract the seasonal trend without multi-year averaging or harmonic tuning.
+## Files
+- **Make_Stationary.m** — core operator (ELM training, projection, deseasonalization, metrics)  
+- **script_demo.m** — minimal examples for PV (Corsica) and GHI (Ajaccio)  
+- **LICENSE** — GPL-3.0  
+- **README.md** — this document  
 
-    Computation of stationarity indicators (including PACFsum).
+## Data Requirements
+- Hourly time series covering ≥ 2 full years.
+- PV power (MW) or GHI (W/m²). Negative values are clamped to zero.
 
-    Compatible with any hourly cyclic time series of at least two years.
+## Quick Start
+```matlab
+T = readtable('Data.xlsx', 'PreserveVariableNames', true);
+series = max(T.("Solaire photovoltaïque (MW)"), 0);
 
-    Grid search for optimising lag length (LagH) and hidden layer size (m).
-
-    3D and contour visualisation of the PACF-based objective surface.
-
-Files:
-
-    Make_Stationary.m Core operator (ELM training, projection, metrics)
-
-    script_demo.m Examples for PV (Corsica) and GHI (Ajaccio)
-
-    LICENSE GPL-3.0
-
-    README.txt This document
-
-Data requirements:
-
-    Hourly time series with at least two consecutive years.
-
-    PV (MW) or GHI (W/m²). Negative values are clamped to zero.
-
-Quick start:
-T = readtable('Data.xlsx','PreserveVariableNames',true);
-series = max(T.("Solaire photovoltaïque (MW)"),0);
-LagH = 24;
-m = 500;
+LagH  = 24;
+m     = 500;
 annee = 2;
-[desais, Raw, Seasonal_Trend, desais_Proj, Seasonal_Trend_Proj, ...
-Lyap, Coeff_Statio_Raw, Coeff_Statio_Proj, Coeff_Statio] = ...
-Make_Stationary(series, annee, LagH, m);
 
-Hyperparameter search:
-Includes an example evaluating PACFsum on a grid of LagH (5 to 50) and m (50 to 2000) with direct surface and contour plots.
-
-Dependencies: MATLAB R2021a+
-
-Parallel Computing Toolbox (optional)
-
-Citation:
-If this code contributes to your work, please cite this repository or the associated manuscript when published.
+[R_te2, ytrue_te, S_te2, R_te, S_te, h, S_raw, S_r1, S_r2] = ...
+    Make_Stationary(series, annee, LagH, m);
