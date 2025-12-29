@@ -1,89 +1,160 @@
-%% LOAD (index horaire, sans timezone) // PV Corse
-clear all;
+%% =====================================================
+%  MAIN — Seasonal extraction via ELM + CLEAN evaluation
+% =====================================================
+clear; clc; close all;
+
+tGlobal = tic;
+outdir = 'results_outputs_final';
+if ~exist(outdir,'dir'), mkdir(outdir); end
+
+%% =====================================================
+%  PV CORSE
+% =====================================================
 file = 'Data.xlsx';
 colPV = 'Solaire photovoltaïque (MW)';
+T = readtable(file,'PreserveVariableNames',true);
+series = T.(colPV);
+series(series<0) = 0;
 
-T = readtable(file, 'PreserveVariableNames', true);
-pv = T.(colPV);
-pv(pv < 0) = 0;  % clamp simple
-series = pv;
-horizon = 24; %ELM construit avec "horizon" lag
-Nbre_Hidden = 500; %neurones cachés
-annee = 2; % année de test
-%2ans, 1 an pour la desais et l'autre pour le test
-[desais, Raw, Seasonal_Trend,desais_Proj, Seasonal_Trend_Proj, Lyap,Coeff_Statio_Raw,Coeff_Statio_Proj,Coeff_Statio] = Make_Stationary(series,annee,horizon,Nbre_Hidden);
+annee = 2;
+horizon = 24;
+Nbre_Hidden = 400;
 
-%% GHI Ajaccio
+fprintf('\n=== PV CORSE ===\n');
 
-clear all;
+tPV = tic;   % ⏱ start PV timer
+[R_te2, ytrue_te, ~, R_te, ~, h, ...
+ S_raw, S_r1, S_r2] = ...
+ Make_Stationary(series, annee, horizon, Nbre_Hidden);
+
+PV.ExecTime_s = toc(tPV);   % ⏱ elapsed PV time
+fprintf('PV execution time: %.2f seconds\n', PV.ExecTime_s);
+
+% ---- Store signals
+PV.raw   = ytrue_te(:);
+PV.Rproj = R_te(:);
+PV.Rph   = R_te2(:);
+
+% ---- Restore compatibility with plot_results.m
+PV.series.raw   = PV.raw;
+PV.series.Rproj = PV.Rproj;
+PV.series.Rph   = PV.Rph;
+
+%% ---- Metrics (PV)
+PV.PACF = [S_raw, S_r1, S_r2];
+
+PV.Entropy.raw   = spectral_entropy(PV.raw,1);
+PV.Entropy.proj  = spectral_entropy(PV.Rproj,1);
+PV.Entropy.phase = spectral_entropy(PV.Rph,1);
+
+ep = PV.raw(1:end-h) - PV.raw(1+h:end);
+PV.NICE.proj  = NICE_metric(PV.Rproj(1:end-h), ep);
+PV.NICE.phase = NICE_metric(PV.Rph(1:end-h), ep);
+
+%% =====================================================
+%  GHI AJACCIO
+% =====================================================
 T = readtable('GLO_ajaccio.txt');
-series=T.Var3;
-horizon = 24; %ELM construit avec "horizon" lag
-Nbre_Hidden = 500; %neurones cachés
-%rng(42);
-annee = 6; % année de test
-%2ans, 1 an pour la desais et l'autre pour le test
-[desais, Raw, Seasonal_Trend,desais_Proj, Seasonal_Trend_Proj, Lyap,Coeff_Statio_Raw,Coeff_Statio_Proj,Coeff_Statio] = Make_Stationary(series,annee,horizon,Nbre_Hidden);
+series = T.Var3;
 
-%% Optimisation horizon vs Nbre_Hidden exemple Avec Data GHI Ajaccio
+fprintf('\n=== GHI AJACCIO ===\n');
 
-clear all;
-T = readtable('GLO_ajaccio.txt');
-series=T.Var3;
-annee = 6;
-Opti_Statio = nan(10,40);
-for horizon = 1:1:10
-    parfor Nbre_Hidden = 1:1:40
-        LagH = 5*horizon;     % 4,8,...,40
-        m    = 50*Nbre_Hidden;  % 100,...,1000
-        
-            [~,~,~,~,~,~,~,S_r1,~] = Make_Stationary(series, annee, LagH, m);
-            Opti_Statio(horizon, Nbre_Hidden) = S_r1;   % critère = PACFsum projection
-    end
+tGHI = tic;   % ⏱ start GHI timer
+[R_te2, ytrue_te, ~, R_te, ~, h, ...
+ S_raw, S_r1, S_r2] = ...
+ Make_Stationary(series, annee, horizon, Nbre_Hidden);
+
+GHI.ExecTime_s = toc(tGHI);   % ⏱ elapsed GHI time
+fprintf('GHI execution time: %.2f seconds\n', GHI.ExecTime_s);
+% ---- Store signals
+GHI.raw   = ytrue_te(:);
+GHI.Rproj = R_te(:);
+GHI.Rph   = R_te2(:);
+
+% ---- Restore compatibility with plot_results.m
+GHI.series.raw   = GHI.raw;
+GHI.series.Rproj = GHI.Rproj;
+GHI.series.Rph   = GHI.Rph;
+
+%% ---- Metrics (GHI)
+GHI.PACF = [S_raw, S_r1, S_r2];
+
+GHI.Entropy.raw   = spectral_entropy(GHI.raw,1);
+GHI.Entropy.proj  = spectral_entropy(GHI.Rproj,1);
+GHI.Entropy.phase = spectral_entropy(GHI.Rph,1);
+
+ep = GHI.raw(1:end-h) - GHI.raw(1+h:end);
+GHI.NICE.proj  = NICE_metric(GHI.Rproj(1:end-h), ep);
+GHI.NICE.phase = NICE_metric(GHI.Rph(1:end-h), ep);
+
+%% =====================================================
+% SAVE RESULTS
+% =====================================================
+save(fullfile(outdir,'results_PV.mat'),'PV','-v7.3');
+save(fullfile(outdir,'results_GHI.mat'),'GHI','-v7.3');
+
+%% =====================================================
+% SAVE CLEAN TABLES (CSV)
+% =====================================================
+
+% ---- PACF TABLE (RAW + Proj + Phase)
+PACF_Table = table( ...
+    {'RAW';'R1_Projection';'R2_PhaseOnly'}, ...
+    [PV.PACF(1); PV.PACF(2); PV.PACF(3)], ...
+    [GHI.PACF(1); GHI.PACF(2); GHI.PACF(3)], ...
+    'VariableNames',{'Signal','PV_Corse','GHI_Ajaccio'} ...
+);
+writetable(PACF_Table, fullfile(outdir,'PACFsum_PV_GHI.csv'));
+
+% ---- NICE TABLE (no RAW by definition)
+NICE_Table = table( ...
+    {'R1_Projection';'R2_PhaseOnly'}, ...
+    [PV.NICE.proj; PV.NICE.phase], ...
+    [GHI.NICE.proj; GHI.NICE.phase], ...
+    'VariableNames',{'Signal','PV_Corse','GHI_Ajaccio'} ...
+);
+writetable(NICE_Table, fullfile(outdir,'NICE_PV_GHI.csv'));
+
+% ---- ENTROPY TABLE
+Entropy_Table = table( ...
+    {'RAW';'R1_Projection';'R2_PhaseOnly'}, ...
+    [PV.Entropy.raw; PV.Entropy.proj; PV.Entropy.phase], ...
+    [GHI.Entropy.raw; GHI.Entropy.proj; GHI.Entropy.phase], ...
+    'VariableNames',{'Signal','PV_Corse','GHI_Ajaccio'} ...
+);
+writetable(Entropy_Table, fullfile(outdir,'Entropy_PV_GHI.csv'));
+TotalTime_s = toc(tGlobal);
+fprintf('\nTOTAL execution time: %.2f seconds\n', TotalTime_s);
+
+Time_Table = table( ...
+    PV.ExecTime_s, ...
+    GHI.ExecTime_s, ...
+    TotalTime_s, ...
+    'VariableNames',{'PV_seconds','GHI_seconds','Total_seconds'} ...
+);
+
+writetable(Time_Table, fullfile(outdir,'ExecutionTime.csv'));
+
+fprintf('\n=== CLEAN EVALUATION DONE SUCCESSFULLY ===\n');
+
+%% =====================================================
+% LOCAL FUNCTIONS
+% =====================================================
+function H = spectral_entropy(x, fs)
+    if nargin<2, fs = 1; end
+    x = x(:); x = x(isfinite(x));
+    if numel(x) < 10, H = NaN; return; end
+    [Pxx,~] = pwelch(x,[],[],[],fs);
+    P = Pxx / sum(Pxx + eps);
+    H = -sum(P.*log(P+eps)) / log(numel(P));
 end
 
-% Analyse du résultat de la grille
-
-M = Opti_Statio;                      % 10x10, damier NaN/valeurs (indices impairs remplis)
-M(~isfinite(M)) = Inf;                % NaN -> Inf pour la recherche du min
-
-[bestVal, linIdx] = min(M(:));
-if ~isfinite(bestVal)
-    error('Aucune valeur finie dans Opti_Statio.');
+function n = NICE_metric(e, ep)
+    e  = e(:); 
+    ep = ep(:);
+    n = mean([ ...
+        mean(abs(e)) / mean(abs(ep)), ...
+        rms(e) / rms(ep), ...
+        nthroot(mean(abs(e).^3),3) / nthroot(mean(abs(ep).^3),3) ...
+    ]);
 end
-[bestH_idx, bestN_idx] = ind2sub(size(M), linIdx);
-
-bestLagH = 5 * bestH_idx;             % horizons testés: 5,10,...,50
-bestM    = 50 * bestN_idx;           % neurones testés: 200,400,...,2000
-fprintf('\n=== BEST ===\nLagH=%d h | m=%d | PACFsum=%.4f\n', bestLagH, bestM, bestVal);
-
-
-% Sous-grille utilisée (indices impairs)
-hIdx = 1:1:10;  mIdx = 1:1:40;
-Mred = Opti_Statio(hIdx, mIdx);
-
-Hvals = 5 * hIdx;                     % Y (heures)
-Mvals = 50 * mIdx;                   % X (neurones)
-[X,Y] = meshgrid(Mvals, Hvals);
-
-% Surface 3D
-figure('Color','w');
-surf(X, Y, Mred, 'EdgeColor','none'); shading interp; colormap(parula); colorbar;
-xlabel('m (neurones cachés)'); ylabel('LagH (heures)'); zlabel('PACFsum (↓ mieux)');
-title('Optimisation LagH–m (sous-grille impaire)');
-view(135,30); grid on; box on;
-
-% Marqueur du minimum (projeter sur la sous-grille si dedans)
-hold on;
-if ismember(bestH_idx,hIdx) && ismember(bestN_idx,mIdx)
-    [~,iH] = ismember(bestH_idx,hIdx);
-    [~,iM] = ismember(bestN_idx,mIdx);
-    plot3(Mvals(iM), Hvals(iH), Mred(iH,iM), 'rp', 'MarkerFaceColor','w', 'MarkerSize',12);
-end
-hold off;
-
-% Carte de contours
-figure('Color','w');
-contourf(X, Y, Mred, 20, 'LineColor','none'); colormap(parula); colorbar;
-xlabel('m (neurones cachés)'); ylabel('LagH (heures)');
-title('Carte PACFsum (plus sombre = meilleur)'); grid on; box on;
