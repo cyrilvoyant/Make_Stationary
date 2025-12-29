@@ -1,4 +1,4 @@
-function [R_te2, ytrue_te, S_te2, R_te, S_te, h,S_raw,S_r1,S_r2] = Make_Stationary(series, annee, LagH, m)
+function [R_te2, ytrue_te, S_te2, R_te, S_te, h,S_raw,S_r1,S_r2,best_alpha1] = Make_Stationary(series, annee, LagH, m)
 % MAKE_STATIONARY — Décomposition saisonnière par ELM (2 approches) et évaluation simple de la stationnarité.
 %
 % Objectif
@@ -7,17 +7,17 @@ function [R_te2, ytrue_te, S_te2, R_te, S_te, h,S_raw,S_r1,S_r2] = Make_Stationa
 %     (1) Projection : entraînement sur [lags + phases], puis projection sur [0 + phases] pour isoler S.
 %     (2) Phase-only : entraînement et inférence uniquement sur les phases (jour/année).
 %   Puis, remettre S à l’échelle (alpha*), imposer des contraintes physiques simples, et quantifier la
-%   “stationnarité cyclique” via un critère PACFsum (plus petit = plus stationnaire) calculé sur TEST (jour).
+%   “stationnarité cyclique” via un critère PACFsum (plus petit = plus stationnaire) calculé sur TEST.
 %
 % Hypothèses / conventions
-%   - Séries horaires avec 2 années complètes (H = 8760 h/an).
-%   - Standardisation sur TRAIN uniquement (pas de fuite).
+%   - Séries horaires avec 2 années complètes (H = 8760 h/an), 50% pour %  train et 50% pour train
+%   - Standardisation sur TRAIN uniquement (pas de fuite, on reste causal).
 %   - Choix h (horizon court) par PACF(Z_train) borné à 24 h.
-%   - ELM caché tanh, poids/biais aléatoires, sortie estimée via ols_fit (Ridge côté utilisateur).
+%   - ELM caché tanh, poids/biais aléatoires, sortie estimée via ols_fit (Ridge).
 %   - Multi-start K pour sélectionner les poids par corrélation de Spearman (TRAIN, jour uniquement).
 %   - Contraintes physiques : ytrue >= 0 ; S = 0 lorsque ytrue <= 0 ; clip S >= 0.
-%   - Remise à l’échelle α* par minimisation MAE(ytrue_tr, α S_tr) (TRAIN), appliquée ensuite à TEST.
-%   - Stationnarité : PACFsum = sum_k |PACF(k)|, k=1..48, calculé sur TEST en masquant la nuit via NaN.
+%   - Remise à l’échelle α* par minimisation MBE(ytrue_tr, α S_tr) (TRAIN), appliquée ensuite à TEST.
+%   - Stationnarité : PACFsum = sum_k |PACF(k)|, k=1..48, calculé sur TEST.
 %
 % Entrées
 %   series   : vecteur (>= 2*8760) des valeurs horaires brutes.
@@ -154,18 +154,23 @@ X_te_S_proj = [zeros(size(Xlags_te)), Xphase_te];
 % → Pour chaque run : apprentissage ridge (ols_fit), reconstruction en MW, clip physique.  
 % → Critère de sélection : corrélation de Spearman sur TRAIN (jour uniquement).  
 % Le triplet (W_S , b_S , beta_S) maximisant Spearman est retenu.
-K = 100;                         % nb d'initialisations
+K = 1000;                         % nb d'initialisations
 best_rho = -Inf;
 bestW_S = []; bestb_S = []; bestbeta_S = [];
 
-for k = 1:K
+rho_all  = -Inf(K,1);
+W_all    = cell(K,1);
+b_all    = cell(K,1);
+beta_all = cell(K,1);
+
+parfor k = 1:K
     % Tirage des poids cachés
     Wk = -1 + 2*rand(d_S, m);
     bk = -1 + 2*rand(1, m);
 
     % Apprentissage sur TRAIN
     Hk_tr = tanh(Xphase_tr*Wk + bk);
-    betak = ols_fit(Hk_tr, y_tr);          % ridge via ta version
+    betak = ols_fit(Hk_tr, y_tr);          % ridge via
 
     % Sortie TRAIN (Z), passage en unités physiques + clip
     S_tr_Z2_k = Hk_tr * betak;
@@ -175,20 +180,25 @@ for k = 1:K
     ytrue_tr_k = y_tr*sd_train + mu_train;
 
     % Masque "jours" et valeurs finies (évite pollution des nuits)
-    M = (ytrue_tr_k > 0) & isfinite(S_tr_k) & isfinite(ytrue_tr_k);
+    M = (ytrue_tr_k > 0.05 * max(ytrue_tr_k, [], 'omitnan')) & isfinite(S_tr_k) & isfinite(ytrue_tr_k);
     if nnz(M) < 10
         continue
     end
 
     % Critère : Spearman sur TRAIN (robuste à l'échelle)
     rho = corr(S_tr_k(M), ytrue_tr_k(M), 'Type','Spearman', 'Rows','pairwise');
-    if isfinite(rho) && rho > best_rho
-        best_rho   = rho;
-        bestW_S    = Wk;
-        bestb_S    = bk;
-        bestbeta_S = betak;
+    if isfinite(rho) 
+        rho_all(k)  = rho;
+        W_all{k}    = Wk;
+        b_all{k}    = bk;
+        beta_all{k} = betak;
     end
 end
+
+[best_rho, kbest] = max(rho_all);
+bestW_S    = W_all{kbest};
+bestb_S    = b_all{kbest};
+bestbeta_S = beta_all{kbest};
 
 % Sécurité : si aucun rho valide n'a été trouvé, on fait au moins une init
 if isempty(bestW_S)
@@ -215,11 +225,16 @@ S_te_Z2 = H_te_S * beta_S;
 % 4) Reconstruction en MW + clip physique.
 % 5) Sélection du run via Spearman sur TRAIN (jours uniquement).
 % Le triplet gagnant (W_C , b_C , beta_C) fournit la saisonnalité projetée.
-K = 100;
+K = 1000; 
 best_rho_C = -Inf;
 bestW_C = []; bestb_C = []; bestbeta_C = [];
 
-for k = 1:K
+rho_all_C  = -Inf(K,1);
+W_all_C    = cell(K,1);
+b_all_C    = cell(K,1);
+beta_all_C = cell(K,1);
+
+parfor k = 1:K
     % Tirage des poids cachés du modèle complet (lags + phases)
     Wk = -1 + 2*rand(d_C, m);
     bk = -1 + 2*rand(1, m);
@@ -237,23 +252,28 @@ for k = 1:K
     ytrue_tr_k  = y_tr*sd_train + mu_train;
 
     % Masque "jours" (évite pollution des nuits) + finitudes
-    M = (ytrue_tr_k > 0) & isfinite(S_tr_k) & isfinite(ytrue_tr_k);
+    M = (ytrue_tr_k > 0.05 * max(ytrue_tr_k, [], 'omitnan')) & isfinite(S_tr_k) & isfinite(ytrue_tr_k);
     if nnz(M) < 10
         continue
     end
 
     % Critère : Spearman sur TRAIN
     rho = corr(S_tr_k(M), ytrue_tr_k(M), 'Type','Spearman', 'Rows','pairwise');
-    if isfinite(rho) && rho > best_rho_C
-        best_rho_C  = rho;
-        bestW_C     = Wk;
-        bestb_C     = bk;
-        bestbeta_C  = betak;
+    if isfinite(rho) 
+        rho_all_C(k)  = rho;
+        W_all_C{k}    = Wk;
+        b_all_C{k}    = bk;
+        beta_all_C{k} = betak;
     end
 end
 
+[best_rho_C, kbest] = max(rho_all_C);
+bestW_C     = W_all_C{kbest};
+bestb_C     = b_all_C{kbest};
+bestbeta_C  = beta_all_C{kbest};
+
 % Fallback si aucune init valide
-if isempty(bestW_C)
+if isempty(bestW_C) || isempty(bestb_C) || isempty(bestbeta_C) || ~isfinite(best_rho_C)
     bestW_C = -1 + 2*rand(d_C, m);
     bestb_C = -1 + 2*rand(1, m);
     H_tr_C  = tanh(X_tr_C*bestW_C + bestb_C);
@@ -291,9 +311,18 @@ ytrue_te = Z_test( idx_te  + h)*sd_train + mu_train;
 ytrue_tr(ytrue_tr < 0) = 0;
 ytrue_te(ytrue_te < 0) = 0;
 
-% S = 0 si Y <= 0 (<= demandé)
-t1 = (ytrue_tr <= 0);
-t2 = (ytrue_te <= 0);
+% --- Seuil relatif : 5% du max global (TRAIN + TEST) → robuste multi-variables ---
+max_global = max([ytrue_tr; ytrue_te], [], 'omitnan');
+seuil_nuit = 0.05 * max_global;   % 5% du maximum observé
+
+% Forcer ytrue à 0 en dessous du seuil (bruit + crépuscule/calme)
+ytrue_tr(ytrue_tr < seuil_nuit) = 0;
+ytrue_te(ytrue_te < seuil_nuit) = 0;
+
+% --- Contrainte de cohérence : S = 0 partout où ytrue == 0 ---
+t1 = (ytrue_tr == 0);
+t2 = (ytrue_te == 0);
+
 S_tr(t1)  = 0;  S_te(t2)  = 0;
 S_tr2(t1) = 0;  S_te2(t2) = 0;
 
@@ -303,27 +332,27 @@ S_te  = max(0, S_te);
 S_tr2 = max(0, S_tr2);
 S_te2 = max(0, S_te2);
 
-%%  Remise à l’échelle (MAE sur TRAIN)
+%%  Remise à l’échelle (MBE sur TRAIN) conservation energie totale
 % Objectif : ajuster l’amplitude de la saisonnalité S_tr (et S_tr2) par un scalaire α.
-% Méthode : recherche discrète α ∈ [0.01, 2.00], pas 0.01.
+% Méthode : recherche discrète α ∈ [0.01, 3.00], pas 0.01.
 % Pour chaque α :
-%     erreur(α) = MAE( ytrue_tr , α * S_tr )
-% On retient l’α minimisant la MAE, puis on applique la même mise à l’échelle au TEST.
-A = (1:200)'/100;                                % 0.01:0.01:2.00
-E = abs(ytrue_tr(:)' - S_tr(:)' .* A);           % matrice (200 x N)
-[~, idx] = min(mean(E, 2, 'omitnan'));
-best_alpha = A(idx);
+%     erreur(α) = MBE( ytrue_tr , α * S_tr )
+% On retient l’α minimisant la valeur absolue de MBE, puis on applique la même mise à l’échelle au TEST.
+A = (1:300)'/100;                                % 0.01:0.01:3.00
+E = ytrue_tr(:)' - S_tr(:)' .* A;           % matrice (300 x N)
+[~, idx] = min(mean(abs(E), 2, 'omitnan'));
+best_alpha1 = A(idx);
 
-S_tr = best_alpha * S_tr;
-S_te = best_alpha * S_te;
+S_tr = best_alpha1 * S_tr;
+S_te = best_alpha1 * S_te;
 
-A = (1:200)'/100;                                % 0.01:0.01:2.00
-E = abs(ytrue_tr(:)' - S_tr2(:)' .* A);          % matrice (200 x N)
-[~, idx] = min(mean(E, 2, 'omitnan'));
-best_alpha = A(idx);
+A = (1:300)'/100;                                % 0.01:0.01:3.00
+E = ytrue_tr(:)' - S_tr2(:)' .* A;          % matrice (300 x N)
+[~, idx] = min(mean(abs(E), 2, 'omitnan'));
+best_alpha2 = A(idx);
 
-S_tr2 = best_alpha * S_tr2;
-S_te2 = best_alpha * S_te2;
+S_tr2 = best_alpha2 * S_tr2;
+S_te2 = best_alpha2 * S_te2;
 
 %% 8) Résidus
 % Calcul des séries résiduelles :
@@ -350,17 +379,17 @@ R_te2 = ytrue_te - S_te2;
 % pour des séries cycliques irradiance/puissance lorsque l’objectif est de minimiser
 % la persistance structurelle résiduelle.
 
-thr  = 0.02 * max(abs(ytrue_te),[],'omitnan');   % seuil 2%
-mask = abs(ytrue_te) >= thr;                     % jour uniquement
+%thr  = 0.05 * max(abs(ytrue_te),[],'omitnan');   % seuil 5%
+%mask = abs(ytrue_te) >= thr;                     % jour uniquement
 
-clean = @(x) (x .* mask);                        % NaN sur la nuit
+%clean = @(x) (x .* mask);                        % NaN sur la nuit
 
 maxLag = 48;
 
 % PACF masqué
-pacf_raw = parcorr(clean(ytrue_te), 'NumLags', maxLag);
-pacf_r1  = parcorr(clean(R_te),     'NumLags', maxLag);
-pacf_r2  = parcorr(clean(R_te2),    'NumLags', maxLag);
+pacf_raw = parcorr(ytrue_te, 'NumLags', maxLag);
+pacf_r1  = parcorr(R_te,     'NumLags', maxLag);
+pacf_r2  = parcorr(R_te2,    'NumLags', maxLag);
 
 % Somme des amplitudes PACF (hors lag0 = pacf(1))
 PACFsum = @(p) nansum(abs(p(2:maxLag+1)));
