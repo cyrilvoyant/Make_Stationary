@@ -1,9 +1,10 @@
 %% =========================================================
 % OPTIMIZATION — LagH vs Hidden neurons (PROJECTION ONLY)
+% GHI – Ajaccio
 % =========================================================
 clear; clc; close all;
 
-outdir = 'results_optimization';
+outdir = 'results_optimization_ghi';
 if ~exist(outdir,'dir'), mkdir(outdir); end
 
 %% =========================
@@ -26,7 +27,7 @@ nM = numel(m_list);
 
 Opti_Statio = nan(nL, nM);
 
-fprintf('Optimization grid: %d LagH × %d neurons = %d runs\n', ...
+fprintf('Optimization grid (GHI Ajaccio): %d LagH × %d neurons = %d runs\n', ...
         nL, nM, nL*nM);
 
 %% =========================
@@ -66,14 +67,14 @@ M(~isfinite(M)) = Inf;
 bestLagH = LagH_list(iL);
 bestm    = m_list(iM);
 
-fprintf('\n=== BEST CONFIGURATION ===\n');
+fprintf('\n=== BEST CONFIGURATION (GHI Ajaccio) ===\n');
 fprintf('LagH = %d h | m = %d | PACFsum_proj = %.4f\n', ...
         bestLagH, bestm, bestVal);
 
 %% =========================
 % SAVE NUMERICAL RESULTS
 % =========================
-save(fullfile(outdir,'results_optimization.mat'), ...
+save(fullfile(outdir,'results_optimization_ghi.mat'), ...
     'Opti_Statio','LagH_list','m_list', ...
     'bestLagH','bestm','bestVal','execTime');
 
@@ -81,13 +82,13 @@ save(fullfile(outdir,'results_optimization.mat'), ...
 Tmat = array2table(Opti_Statio, ...
     'VariableNames', compose('m_%d', m_list), ...
     'RowNames', compose('LagH_%d', LagH_list));
-writetable(Tmat, fullfile(outdir,'PACFsum_projection_matrix.csv'), ...
+writetable(Tmat, fullfile(outdir,'PACFsum_projection_matrix_ghi.csv'), ...
            'WriteRowNames',true);
 
 % --- Save summary CSV
 Summary = table(bestLagH, bestm, bestVal, execTime, ...
     'VariableNames',{'Best_LagH_hours','Best_m_neurons','Best_PACFsum_proj','ExecTime_s'});
-writetable(Summary, fullfile(outdir,'Optimization_summary.csv'));
+writetable(Summary, fullfile(outdir,'Optimization_summary_ghi.csv'));
 
 %% =========================
 % HEATMAP
@@ -98,12 +99,12 @@ set(gca,'YDir','normal');
 colorbar;
 xlabel('Hidden neurons');
 ylabel('LagH (hours)');
-title('PACFsum (projection)');
+title('PACFsum (projection)– GHI Ajaccio');
 hold on;
 plot(bestm, bestLagH, 'rp', 'MarkerSize', 14, 'MarkerFaceColor','w');
 hold off;
 
-saveas(gcf, fullfile(outdir,'PACFsum_heatmap.png'));
+saveas(gcf, fullfile(outdir,'PACFsum_heatmap_ghi.png'));
 
 %% =========================
 % CONTOUR PLOT
@@ -115,11 +116,11 @@ contourf(X, Y, Opti_Statio, 30, 'LineColor','none');
 colorbar;
 xlabel('Hidden neurons');
 ylabel('LagH (hours)');
-title('PACFsum (projection)');
+title('PACFsum (projection)– GHI Ajaccio');
 hold on;
 plot(bestm, bestLagH, 'rp', 'MarkerSize', 14, 'MarkerFaceColor','w');
 hold off;
 
-saveas(gcf, fullfile(outdir,'PACFsum_contour.png'));
+saveas(gcf, fullfile(outdir,'PACFsum_contour_ghi.png'));
 
-fprintf('\n=== OPTIMIZATION + PLOTS SAVED SUCCESSFULLY ===\n');
+fprintf('\n=== GHI AJACCIO OPTIMIZATION + PLOTS SAVED SUCCESSFULLY ===\n');
