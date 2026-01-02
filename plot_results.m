@@ -18,7 +18,7 @@ figure;
 bar(PV.PACF)
 set(gca,'XTickLabel',{'Raw','Projection','Phase-only'})
 ylabel('PACFsum')
-title('PACFsum comparison – PV Corse')
+title('PACFsum comparison – PV Corsica')
 grid on
 saveas(gcf, fullfile(outdir,'PACFsum_PV.png'));
 
@@ -41,7 +41,7 @@ figure;
 plot(PV.Rproj(1:N),'r'); hold on
 plot(PV.Rph(1:N),'b')
 legend('Residual (projection)','Residual (phase-only)')
-title('PV Corse –Residuals')
+title('PV Corsica – Residuals')
 xlabel('Time (hours)')
 ylabel('Power (MW)')
 grid on
@@ -107,7 +107,7 @@ figure;
 pwelch(PV.Rproj,[],[],[],fs); hold on
 pwelch(PV.Rph,[],[],[],fs);
 legend('Residual (projection)','Residual (phase-only)','Location','best')
-title('Power spectrum – PV Corse')
+title('Power spectrum – PV Corsica')
 grid on
 saveas(gcf, fullfile(outdir,'Spectrum_PV.png'));
 
@@ -128,7 +128,7 @@ figure;
 bar([PV.Entropy.raw, PV.Entropy.proj, PV.Entropy.phase])
 set(gca,'XTickLabel',{'Raw','Projection','Phase-only'})
 ylabel('Spectral entropy')
-title('Spectral entropy – PV Corse')
+title('Spectral entropy – PV Corsica')
 grid on
 saveas(gcf, fullfile(outdir,'Entropy_PV.png'));
 
@@ -149,7 +149,7 @@ figure;
 bar([PV.NICE.proj, PV.NICE.phase])
 set(gca,'XTickLabel',{'Projection','Phase-only'})
 ylabel('NICE score')
-title('Forecast relevance – PV Corse')
+title('Forecast relevance – PV Corsica')
 grid on
 saveas(gcf, fullfile(outdir,'NICE_PV.png'));
 
