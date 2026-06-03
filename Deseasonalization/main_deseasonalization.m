@@ -24,7 +24,7 @@ for i = 1:height(OptTable)
 end
 
 %% ================= METRICS =================
-LLE = @(x) estimate_LLE(x,24,5,40);
+%LLE = @(x) estimate_LLE(x,24,5,40);
 Labels = {'RAW','LOESS','FOURIER','MEDIAN','EL_Proj','EL_Phase'};
 
 %% ================= LOAD DATA =================
@@ -38,17 +38,93 @@ DataList = {
 
 S = load('AJACCIO_station9_15MIN_T2M_FF_GHI.mat');
 
+
+%% =====================================================
+% CREATE 30MIN AND 1H AJACCIO DATASETS
+%% =====================================================
+
+time15 = S.time_grid_15(:);
+
+GHI15 = S.GHI(:);
+T2M15 = S.T2M(:);
+
+%% ================= 30 MIN =================
+
+N30 = floor(length(GHI15)/2)*2;
+
+GHI_30min = mean(reshape(GHI15(1:N30),2,[]),1,'omitnan')';
+T2M_30min = mean(reshape(T2M15(1:N30),2,[]),1,'omitnan')';
+
+time_grid_30 = time15(1:2:N30);
+
+GHI_30min(GHI_30min < 0) = 0;
+
+save('AJACCIO_station9_30MIN_T2M_GHI.mat','GHI_30min','T2M_30min','time_grid_30');
+
+%% ================= 1 HOUR =================
+
+N1H = floor(length(GHI15)/4)*4;
+
+GHI_1h = mean(reshape(GHI15(1:N1H),4,[]),1,'omitnan')';
+T2M_1h = mean(reshape(T2M15(1:N1H),4,[]),1,'omitnan')';
+
+time_grid_1h = time15(1:4:N1H);
+
+GHI_1h(GHI_1h < 0) = 0;
+
+save('AJACCIO_station9_1H_T2M_GHI.mat','GHI_1h','T2M_1h','time_grid_1h');
+
+disp('=== AJACCIO 30MIN + 1H DATASETS CREATED ===');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+%% =====================================================
+% LOAD AJACCIO 30MIN DATA
+%% =====================================================
+
+S30 = load('AJACCIO_station9_30MIN_T2M_GHI.mat');
+
+%% =====================================================
+% LOAD AJACCIO 1H DATA
+%% =====================================================
+
+S1H = load('AJACCIO_station9_1H_T2M_GHI.mat');
+
+%% =====================================================
+% LOAD BASTIA WIND
+%% =====================================================
+
+WB30 = load('Bastia_Wind_30min.mat');
+
+WB60 = load('Bastia_Wind_60min.mat');
+
+%% =====================================================
+% APPEND DATA
+%% =====================================================
+
 DataList = [DataList; {
-    'WS',        S.time_grid_15, S.FF,           8760*4;
-    'GHI_15min', S.time_grid_15, max(0,S.GHI),   8760*4;
-    'T2M',       S.time_grid_15, S.T2M,          8760*4;
+
+    % ================= WIND =================
+    'WS_30min', WB30.time_Bastia_30, ...
+             WB30.FF_Bastia_30, 8760*2;
+
+    'WS_1h',    WB60.time_Bastia_60, ...
+                 WB60.FF_Bastia_60, 8760;
+    % ================= GHI ==================
+    'GHI_30min', S30.time_grid_30, ...
+                  max(0,S30.GHI_30min), 8760*2;
+
+    'GHI_1h',    S1H.time_grid_1h, ...
+                  max(0,S1H.GHI_1h), 8760;
+
+    % ================= T2M ==================
+    'T2M_30min', S30.time_grid_30, ...
+                  S30.T2M_30min, 8760*2;
+
+    'T2M_1h',    S1H.time_grid_1h, ...
+                  S1H.T2M_1h, 8760;
+
 }];
 
-Tg = readtable('GLO_ajaccio.txt');
-
-DataList = [DataList; {
-    'GHI', datetime(num2str(Tg.Var2),'InputFormat','yyyyMMddHH'), max(0,Tg.Var3), 8760;
-}];
 
 nVar = size(DataList,1);
 
@@ -62,11 +138,14 @@ LLE_cell  = cell(nVar,1);
 Names     = cell(nVar,1);
 %% ================= MAIN LOOP (PARFOR) =================
 parfor id = 1:nVar
-
+    
     name   = DataList{id,1};
     time   = DataList{id,2};
     series = DataList{id,3};
     H      = DataList{id,4};
+    samples_per_day = round(H / 365);
+    series = series(:);
+    time   = time(:);
 
     fprintf('\nProcessing %s\n',name);
 
@@ -74,14 +153,18 @@ parfor id = 1:nVar
     m       = OptParams.(name).m;
 
     %% ===== BASELINE METHODS =====
-    S_loess  = smoothdata(series,'loess',round(H/12));
-
+    
     t = (1:numel(series))';
-    u = mod(t-1,24)/24;
-    v = mod(t-1,24*365)/(24*365);
+
+    u = mod(t-1,samples_per_day) / samples_per_day;
+    v = mod(t-1,H) / H;
     [S_fourier,~] = crossed_fourier_deseason(series,u,v,3,3,1e-2);
 
-    [S_median,~] = rolling_median_deseason(series,10);
+    window_size = round(10 * samples_per_day / 24);
+    [S_median,~] = rolling_median_deseason(series,window_size);
+    %S_loess  = smoothdata(series,'loess',round(H/12));
+    S_loess = smoothdata(series,'loess',window_size);
+
 
     %% ===== ELM TRAIN / TEST  =====
     [R_ph, yte, S_te2, R_proj, S_te, h, ...
@@ -103,11 +186,8 @@ parfor id = 1:nVar
     };
 
     %% ===== METRICS =====
-    if H==8760*4
-        maxLag = 48*4;
-    else
-        maxLag = 48;
-    end
+    %% ===== METRICS =====
+    maxLag = 2 * samples_per_day;
 
     PACF_loc = zeros(1,numel(Labels));
     ENT_loc  = zeros(1,numel(Labels));
@@ -128,7 +208,9 @@ parfor id = 1:nVar
             x = x(round(linspace(1,length(x),3000)));
         end
 
-        LLE_loc(i) = LLE(x);
+        tau = round(samples_per_day);
+
+        LLE_loc(i) = estimate_LLE(x,tau,5,40);
 
     end
 

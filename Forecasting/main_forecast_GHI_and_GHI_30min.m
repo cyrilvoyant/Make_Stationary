@@ -1,5 +1,5 @@
 %% =========================================================
-%  FORECASTING — GHI HOURLY + 15MIN 
+%  FORECASTING — GHI HOURLY + 30MIN 
 %% =========================================================
 
 clear; close all; clc;
@@ -8,7 +8,7 @@ clear; close all; clc;
 % GHI and GHI_15min VARIABLES 
 %% =========================================================
 
-VariableList = {'GHI','GHI_15min'};
+VariableList = {'GHI_30min','GHI_1h'};
 %% =========================================================
 % LOOP VARIABLES
 %% =========================================================
@@ -21,71 +21,73 @@ for ivar = 1:numel(VariableList)
     fprintf(' PROCESSING: %s\n',VariableName);
     fprintf('====================================\n');
 switch VariableName
-
     %% =====================================================
-    % HOURLY GHI
+    % GHI 30MIN
     %% =====================================================
-    case 'GHI'
-
-        outdir = 'GHI_results_outputs_forecasting';
-
-        TRAIN_LEN = 10*8760;
-
-        %% LOAD GHI
-        Tghi = readtable('GLO_ajaccio.txt');
-
-        GHI = Tghi{:,3};
-
-        %% LOAD CLEAR SKY
-        load G_clearsky_h.mat
-
-        CS = G_clearsky_h(:);
-
-        %% REPEAT CLEAR SKY
-        for i = 8761:length(GHI)
-            CS(i) = CS(i-8760);
-        end
-
-        CS = CS(1:length(GHI));
-
-        %% RESULTS FILE
-        results_file = ...
-            'results_final_pipeline/GHI_FULL.csv';
-
-    %% =====================================================
-    % 15-MIN GHI
-    %% =====================================================
-    case 'GHI_15min'
-
+    case 'GHI_30min'
+    
         outdir = ...
-            'GHI_15min_results_outputs_forecasting';
-
-        TRAIN_LEN = 4*8760*2;
-
-        %% LOAD GHI
+            'GHI_30min_results_outputs_forecasting';
+    
+        TRAIN_LEN = 2*8760*2;
+    
+        %% LOAD DATA
         data = load( ...
-            'AJACCIO_station9_15MIN_T2M_FF_GHI.mat');
-
-        GHI = data.GHI(:);
-
+            'AJACCIO_station9_30MIN_T2M_GHI.mat');
+    
+        GHI = data.GHI_30min(:);
+    
         %% LOAD CLEAR SKY
         load G_clearsky_h.mat
+    
+        CS_hourly = G_clearsky_h(:);
+    
+        %% CONVERT CLEAR SKY TO 30MIN
+        CS = repelem(CS_hourly,2);
+    
+        %% REPEAT CLEAR SKY
+        for i = length(CS)+1:length(GHI)
+            CS(i) = CS(i-length(CS_hourly)*2);
+        end
+    
+        CS = CS(1:length(GHI));
+    
+        %% RESULTS FILE
+        results_file = ...
+            'results_final_pipeline/GHI_30min_FULL.csv';
 
+    %% =====================================================
+    % GHI 1H
+    %% =====================================================
+    case 'GHI_1h'
+    
+        outdir = ...
+            'GHI_1h_results_outputs_forecasting';
+    
+        TRAIN_LEN = 2*8760;
+    
+        %% LOAD DATA
+        data = load( ...
+            'AJACCIO_station9_1H_T2M_GHI.mat');
+    
+        GHI = data.GHI_1h(:);
+    
+        %% LOAD CLEAR SKY
+        load G_clearsky_h.mat
+    
         CS = G_clearsky_h(:);
-
+    
         %% REPEAT CLEAR SKY
         for i = 8761:length(GHI)
             CS(i) = CS(i-8760);
         end
-
+    
         CS = CS(1:length(GHI));
-
+    
         %% RESULTS FILE
         results_file = ...
-            'results_final_pipeline/GHI_15min_FULL.csv';
-
+            'results_final_pipeline/GHI_1h_FULL.csv';
 end
-
 %% =========================================================
 % CREATE OUTPUT FOLDERS
 %% =========================================================
@@ -106,7 +108,19 @@ end
 % GENERAL PARAMETERS
 %% =========================================================
 
-Horizons = 1:6;
+%% =====================================================
+% FORECAST HORIZONS
+%% =====================================================
+
+if contains(VariableName,'30min')
+
+    Horizons = 2:2:12;
+
+else
+
+    Horizons = 1:6;
+
+end
 
 MethodNames = { ...
     'RAW', ...
@@ -178,9 +192,14 @@ end
 
 for Horizon = Horizons
 
-    fprintf('\n=== %s — Horizon %dh ===\n', ...
-        VariableName,Horizon);
-
+    if contains(VariableName,'30min')
+        HorizonHours = Horizon / 2;
+    else
+        HorizonHours = Horizon;
+    end
+    
+    fprintf('\n=== %s — Horizon %gh ===\n', ...
+            VariableName,HorizonHours);
     %% =====================================================
     % HYPERPARAMETERS
     %% =====================================================
@@ -418,21 +437,22 @@ for Horizon = Horizons
         'R2','r2','nMBE','NICE'});
 
     writetable( ...
-        GlobalTable,...
-        fullfile(outdir,'Metrics', ...
-        sprintf('Metrics_%s_H%d.csv',VariableName,Horizon)));
+    GlobalTable,...
+    fullfile(outdir,'Metrics', ...
+    sprintf('Metrics_%s_%gH.csv', ...
+    VariableName,HorizonHours)));
     %% =====================================================
     % SAVE FORECASTS
     %% =====================================================
 
     save_forecasts( ...
-        outdir,Horizon, ...
+        outdir,HorizonHours, ...
         obs,...
         Forecast_EL_AR,...
         'EL_AR');
 
     save_forecasts( ...
-        outdir,Horizon, ...
+        outdir,HorizonHours, ...
         obs,...
         Forecast_REF,...
         'REF');
@@ -441,7 +461,7 @@ end
 end
 disp('=== FINISHED SUCCESSFULLY ===');
 %% =========================================================
-function save_forecasts(outdir,H,obs,F,tag)
+function save_forecasts(outdir,HorizonHours,obs,F,tag)
 % =========================================================
 % SAVE FORECASTS WITH STRICT ALIGNMENT
 % =========================================================
@@ -483,8 +503,8 @@ end
 writetable( ...
     T,...
     fullfile(outdir,'Forecasts', ...
-    sprintf('Forecasts_%s_H%d.csv',tag,H)));
-
+    sprintf('Forecasts_%s_%gH.csv', ...
+    tag,HorizonHours)))
 end
 
 %% =========================================================

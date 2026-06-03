@@ -1,10 +1,10 @@
 %% ================= LOAD DATA =================
 clear; clc; close all;
 
-outdir = 'Deseasonalisation_plot_results';
+outdir = 'deseasonalisation_plot_results';
 if ~exist(outdir,'dir'), mkdir(outdir); end
 
-T = readtable('C:/Users/HP/Downloads/Prof_Cyril Voyant_Proposition_Collaboration/Maklewa/results_final_pipeline/Metrics.csv');
+T = readtable('C:/Users/HP/Downloads/Prof_Cyril Voyant_Proposition_Collaboration/Maklewa/final_deseasonalization_code_22_05_2026/results_final_pipeline/Metrics.csv');
 
 Methods = T.Signal;
 
@@ -13,8 +13,8 @@ Methods = strrep(Methods,'EL_Proj','EL-Proj');
 Methods = strrep(Methods,'EL_Phase','EL-Phase');
 
 %% ================= VARIABLES =================
-Vars = {'PV','WT','PT','WS','GHI_15min','T2M','GHI'};
-Vars_display = {'PV','WT','PT','WS','GHI (15 min)','T2M','GHI'};
+Vars = {'GHI_30min','GHI_1h','PV','WT','PT','WS_30min','WS_1h','T2M_30min','T2M_1h'};
+Vars_display = {'GHI30','GHI1h','PV','WT','PT','WS30','WS1h','T2M30','T2M1h'};
 
 MetricsNames = {'PACFsum','Entropy','LLE'};
 

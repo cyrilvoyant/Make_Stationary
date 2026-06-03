@@ -5,22 +5,27 @@
 clear; close all; clc;
 
 %% ================= VARIABLES =============================
-Variables = {'PV','WT','PT','WS','T2M'};
-Horizons = 1:6;
+Variables = {'PV','WT','PT','WS_30min','WS_1h','T2M_30min','T2M_1h'};
+Horizons_hourly = 1:6;
 
 % ===== VIOLIN (4 metrics)
-MetricsNames_violin  = {'nRMSE','nMAE','r2','nMBE'};
-MetricsLabels_violin = {'nRMSE','nMAE','r^2','nMBE'};
+MetricsNames_violin  = {'nRMSE','nMAE'}; %,'r2','nMBE'
+MetricsLabels_violin = {'nRMSE','nMAE'}; %,'r^2','nMBE'
 
 % ===== BAR (6 metrics)
-MetricsNames_bar  = {'nRMSE','nMAE','r2','nMBE'}; %,'R2','NICE'
-MetricsLabels_bar = {'nRMSE','nMAE','r^2','nMBE'}; % ,'R^2','NICE'
+MetricsNames_bar  = {'nRMSE','nMAE'}; %,'R2','NICE','r2','nMBE'
+MetricsLabels_bar = {'nRMSE','nMAE'}; % ,'R^2','NICE','r^2','nMBE'
 
 %% =========================================================
 for v = 1:numel(Variables)
 
     VarName = Variables{v};
 
+    if contains(VarName,'30min')
+        Horizons = 2:2:12;
+    else
+        Horizons = 1:6;
+    end
     fprintf('\n==============================\n');
     fprintf(' POST-PROCESSING: %s\n',VarName);
     fprintf('==============================\n');
@@ -39,8 +44,14 @@ for v = 1:numel(Variables)
     ModelNames = {};
 
     for H = Horizons
+        if contains(VarName,'30min')
+            HorizonHours = H/2;
+        else
+            HorizonHours = H;
+        end
+        
         Ttmp = readtable(fullfile(ForecastDir,...
-            sprintf('Forecasts_EL_AR_H%d.csv',H)));
+            sprintf('Forecasts_EL_AR_%gH.csv',HorizonHours)));
 
         vars = setdiff(Ttmp.Properties.VariableNames,...
             {'Time','Observed'});
@@ -62,7 +73,7 @@ for v = 1:numel(Variables)
         figure('Color','w','Position',[100 100 1400 900]);
 
         for im = 1:numel(MetricsNames_violin)
-            subplot(2,2,im); hold on
+            subplot(2,1,im); hold on
 
             Pcell = cell(numel(Horizons),1);
             Mcell = cell(numel(Horizons),1);
@@ -71,11 +82,16 @@ for v = 1:numel(Variables)
 
                 H = Horizons(ih);
 
+                if contains(VarName,'30min')
+                    HorizonHours = H/2;
+                else
+                    HorizonHours = H;
+                end
                 Tm = readtable(fullfile(ForecastDir,...
-                    sprintf('Forecasts_EL_AR_H%d.csv',H)));
+                    sprintf('Forecasts_EL_AR_%gH.csv',HorizonHours)));
 
                 Tr = readtable(fullfile(ForecastDir,...
-                    sprintf('Forecasts_REF_H%d.csv',H)));
+                    sprintf('Forecasts_REF_%gH.csv',HorizonHours)));
 
                 if startsWith(ModelName,'Ref_')
 
@@ -137,15 +153,16 @@ for v = 1:numel(Variables)
                     Pmat(end-numel(pv)+1:end,ih) = pv;
                 end
             end
-
+         
             %% VIOLIN
             hV = daviolinplot({Pmat,Mmat},...
                 'violin','full',...
+                'violinmin',0, ...
                 'colors',[0.7 0.7 0.7; 0 0.447 0.741],...
-                'xtlabels',string(Horizons));
+                'xtlabels',string(Horizons_hourly));
 
             xlabel('Forecast horizon','FontWeight','bold')
-            
+            ylim([0 inf])
             ylabel(MetricsLabels_violin{im})
             title(MetricsLabels_violin{im})
 
@@ -171,8 +188,19 @@ for v = 1:numel(Variables)
     %% =====================================================
     for H = Horizons
 
+        if contains(VarName,'30min')
+            HorizonHours = H/2;
+        else
+            HorizonHours = H;
+        end
+
         T = readtable(fullfile(MetricDir,...
-            sprintf('Metrics_%s_H%d.csv',VarName,H)));
+            sprintf('Metrics_%s_%gH.csv',VarName,HorizonHours)));
+        % Keep only EL and AR models
+        idx_keep = startsWith(T.Model,'EL_') | ...
+                   startsWith(T.Model,'AR_');
+        
+        T = T(idx_keep,:);
 
         figure('Color','w','Position',[100 100 1400 700]);
 
@@ -180,7 +208,7 @@ for v = 1:numel(Variables)
 
         for im = 1:numel(MetricsNames_bar)
 
-            subplot(3,2,im)
+            subplot(2,1,im)
 
             vals = T.(MetricsNames_bar{im});
             b = bar(vals,'FaceColor','flat');
@@ -203,22 +231,27 @@ for v = 1:numel(Variables)
             grid on
         end
 
-        sgtitle(sprintf('%s — Global Metrics (H=%dh)',VarName,H),...
-            'FontSize',14,'FontWeight','bold')
+        sgtitle(sprintf('%s-Global Metrics (H=%dh)',VarName,H),...
+            'Interpreter','none','FontSize',14,'FontWeight','bold')
 
         saveas(gcf, fullfile(figDir,...
-            sprintf('%s_Bar_H%d.png',VarName,H)));
+            sprintf('%s_Bar_%gH.png',VarName,HorizonHours)));
     end
 %% =====================================================
     % SCATTER 
     %% =====================================================
     for H = Horizons
 
+        if contains(VarName,'30min')
+            HorizonHours = H/2;
+        else
+            HorizonHours = H;
+        end
         TmEL = readtable(fullfile(ForecastDir,...
-            sprintf('Forecasts_EL_AR_H%d.csv',H)));
+            sprintf('Forecasts_EL_AR_%gH.csv',HorizonHours)));
         
         TmREF = readtable(fullfile(ForecastDir,...
-            sprintf('Forecasts_REF_H%d.csv',H)));
+            sprintf('Forecasts_REF_%gH.csv',HorizonHours)));
         
         obs = TmEL.Observed(:);
 
@@ -258,10 +291,16 @@ for v = 1:numel(Variables)
             title(ModelNames{k},'Interpreter','none')
         end
 
-        sgtitle(sprintf('%s Scatter H=%d',VarName,H))
+        sgtitle(sprintf('%s Scatter H=%gh',VarName,HorizonHours),'Interpreter','none')
 
+        if contains(VarName,'30min')
+            HorizonHours = H/2;
+        else
+            HorizonHours = H;
+        end
+        
         saveas(gcf, fullfile(figDir,...
-            sprintf('%s_Scatter_H%d.png',VarName,H)));
+            sprintf('%s_Scatter_%gH.png',VarName,HorizonHours)));
     end
 
 end
@@ -277,6 +316,12 @@ function D = daily_metrics_from_series(obs,pred)
 % DAILY METRICS COMPUTATION
 % ======================================================
 
+if length(obs) > 30000
+    samples_per_day = 48;
+else
+    samples_per_day = 24;
+end
+
 obs  = obs(:);
 pred = pred(:);
 
@@ -291,7 +336,7 @@ pred = pred(idx);
 %% ======================================================
 % MINIMUM LENGTH CHECK
 %% ======================================================
-if numel(obs) < 48
+if numel(obs) < 2*samples_per_day
 
     D.nRMSE = [];
     D.nMAE  = [];
@@ -305,7 +350,7 @@ end
 %% ======================================================
 % NUMBER OF COMPLETE DAYS
 %% ======================================================
-Nd = floor(numel(obs)/24);
+Nd = floor(numel(obs)/samples_per_day);
 
 if Nd < 2
 
@@ -321,8 +366,11 @@ end
 %% ======================================================
 % RESHAPE INTO DAYS
 %% ======================================================
-obs  = reshape(obs(1:24*Nd),24,Nd);
-pred = reshape(pred(1:24*Nd),24,Nd);
+obs  = reshape(obs(1:samples_per_day*Nd), ...
+               samples_per_day,Nd);
+
+pred = reshape(pred(1:samples_per_day*Nd), ...
+               samples_per_day,Nd);
 
 %% ======================================================
 % INIT

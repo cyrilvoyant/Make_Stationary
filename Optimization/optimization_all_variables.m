@@ -18,23 +18,37 @@ DataList = {
     'PT',  max(0,T.('Production totale (MW)')),       false;
 };
 
-S = load('AJACCIO_station9_15MIN_T2M_FF_GHI.mat');
+S = load('AJACCIO_station9_30MIN_T2M_GHI.mat');
 
 DataList = [DataList; {
-    'WS',        S.FF,           true;
-    'GHI_15min', max(0,S.GHI),   true;
-    'T2M',       S.T2M,          true
+    'GHI_30min', max(0,S.GHI_30min),   true;
+    'T2M_30min',       S.T2M_30min,          true;
 }];
 
-Tg = readtable('GLO_ajaccio.txt');
+S = load('AJACCIO_station9_1H_T2M_GHI.mat');
+
 DataList = [DataList; {
-    'GHI', max(0,Tg.Var3), false
+    'GHI_1h', max(0,S.GHI_1h),   false;
+    'T2M_1h',       S.T2M_1h,    false;
 }];
+
+S = load('Bastia_Wind_30min.mat');
+
+DataList = [DataList; {
+    'WS_30min', S.FF_Bastia_30,   true;
+}];
+
+S = load('Bastia_Wind_60min.mat');
+
+DataList = [DataList; {
+    'WS_1h', S.FF_Bastia_60,   false;
+}];
+
 
 %% ================= GRID =================
 
-LagH_base   = 12:12:60;
-m_list      = 100:100:1600;
+LagH_base   = 24:24:72;
+m_list      = 200:200:1600;
 
 AllBest = [];
 
@@ -44,16 +58,16 @@ for v = 1:size(DataList,1)
 
     VarName = DataList{v,1};
     series  = DataList{v,2};
-    is15min = DataList{v,3};
+    is30min = DataList{v,3};
 
     fprintf('\n==============================\n');
     fprintf('Variable: %s\n', VarName);
     fprintf('==============================\n');
 
     % -------- Resolution handling
-    if is15min
-        H = 8760*4;
-        LagH_list = LagH_base*4;
+    if is30min
+        H = 8760*2;
+        LagH_list = LagH_base*2;
     else
         H = 8760;
         LagH_list = LagH_base;

@@ -7,8 +7,7 @@ clear; close all; clc;
 %% =========================================================
 % FORECAST HORIZONS
 %% =========================================================
-Horizons = 1:6;
-
+Horizons_hourly = 1:6;
 %% =========================================================
 % METHODS
 %% =========================================================
@@ -18,7 +17,7 @@ MethodNames = { ...
     'FOURIER', ...
     'MEDIAN', ...
     'EL_Projection', ...
-    'EL_PhaseOnly'};
+    'EL_Phase'};
 
 %% =========================================================
 % VARIABLES
@@ -27,8 +26,10 @@ Variables = { ...
     'PV',  true; ...
     'WT',  true; ...
     'PT',  true; ...
-    'WS',  true; ...
-    'T2M', false };
+    'WS_30min',  true; ...
+    'WS_1h',  true; ...
+    'T2M_30min',  false; ...
+    'T2M_1h', false};
 
 %% =========================================================
 % LOOP VARIABLES
@@ -37,6 +38,11 @@ for v = 1:size(Variables,1)
 
     VarName = Variables{v,1};
     is_nonnegative = Variables{v,2};
+    if contains(VarName,'30min')
+        Horizons = 2:2:12;
+    else
+        Horizons = 1:6;
+    end
 
     %% =====================================================
     % TRAIN LENGTH
@@ -46,9 +52,18 @@ for v = 1:size(Variables,1)
         case {'PV','WT','PT'}
             TRAIN_LEN = 6*8760;
 
-        case {'WS','T2M'}
-            TRAIN_LEN = 4*8760*2;
+        case {'WS_30min'}
+            TRAIN_LEN = 2*8760*2;
 
+        case {'WS_1h'}
+            TRAIN_LEN = 2*8760;
+        case {'T2M_30min'}
+
+            TRAIN_LEN = 2*8760*2;
+    
+        case {'T2M_1h'}
+            TRAIN_LEN = 2*8760;
+            
     end
 
     fprintf('\n==============================\n');
@@ -130,7 +145,13 @@ for v = 1:size(Variables,1)
     %% =====================================================
     for Horizon = Horizons
 
-        fprintf('--- Horizon %dh ---\n', Horizon);
+        if contains(VarName,'30min')
+            HorizonHours = Horizon/2;
+        else
+            HorizonHours = Horizon;
+        end
+
+        fprintf('--- Horizon %gh ---\n', HorizonHours);
 
         %% =================================================
         % HYPERPARAMETERS
@@ -326,8 +347,8 @@ for v = 1:size(Variables,1)
         writetable( ...
             GlobalTable,...
             fullfile(outdir,'Metrics', ...
-            sprintf('Metrics_%s_H%d.csv', ...
-            VarName,Horizon)));
+            sprintf('Metrics_%s_%gH.csv', ...
+            VarName,HorizonHours)));
 
         %% =================================================
         % SAVE FORECASTS
@@ -335,14 +356,14 @@ for v = 1:size(Variables,1)
 
         % ===== EL/AR forecasts saved with aligned obs =====
         save_forecasts( ...
-            outdir,Horizon, ...
+            outdir,HorizonHours, ...
             obs, ...
             Forecast_ELAR, ...
             'EL_AR');
 
         % ===== Reference forecasts =====
         save_forecasts( ...
-            outdir,Horizon, ...
+            outdir,HorizonHours, ...
             obs_ref, ...
             Forecast_REF, ...
             'REF');
@@ -403,8 +424,7 @@ NS = mean([N1 N2 N3]);
 end
 
 %% =========================================================
-function save_forecasts(outdir,H,obs,F,tag)
-
+function save_forecasts(outdir,HorizonHours,obs,F,tag)
 N = length(obs);
 
 T = table((1:N)',obs(:), ...
@@ -429,6 +449,6 @@ end
 
 writetable(T, ...
     fullfile(outdir,'Forecasts', ...
-    sprintf('Forecasts_%s_H%d.csv',tag,H)));
+    sprintf('Forecasts_%s_%gH.csv',tag,HorizonHours)));
 
 end

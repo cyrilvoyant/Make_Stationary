@@ -6,13 +6,13 @@
 clear; clc; close all;
 
 %% ================= PATH =============================
-file = 'C:/Users/HP/Downloads/Prof_Cyril Voyant_Proposition_Collaboration/Maklewa/results_final_pipeline/Metrics.csv';
+file = 'C:/Users/HP/Downloads/Prof_Cyril Voyant_Proposition_Collaboration/Maklewa/final_deseasonalization_code_22_05_2026/results_final_pipeline/Metrics.csv';
 
 T = readtable(file);
 
 Methods = string(T.Signal);
 
-Variables = {'PV','WT','PT','WS','GHI_15min','T2M','GHI'};
+Variables = {'GHI_30min','GHI_1h','PV','WT','PT','WS_30min','WS_1h','T2M_30min','T2M_1h'};
 
 Results = {};
 
@@ -70,24 +70,37 @@ for v = 1:numel(Variables)
         end
 
         % LLE → 0
-        if abs(model_LLE) < abs(raw_LLE)
+        if model_LLE < raw_LLE
             score = score + 1;
         end
-
+        %% ===== PERCENTAGE IMPROVEMENTS =====
+        
+        PACF_gain = 100 * (raw_PACF - model_PACF) / abs(raw_PACF);
+        
+       
         %% ===== STORE =====
+%         Results(end+1,:) = {Var, model, ...
+%             model_PACF, model_Entropy, model_LLE, ...
+%             score};
         Results(end+1,:) = {Var, model, ...
             model_PACF, model_Entropy, model_LLE, ...
+            PACF_gain, ...
             score};
     end
 end
 
 %% ================= TABLE =============================
+% ResultTable = cell2table(Results, ...
+%     'VariableNames',{ ...
+%     'Variable','Model',...
+%     'PACF','Entropy','LLE',...
+%     'Score'});
 ResultTable = cell2table(Results, ...
     'VariableNames',{ ...
     'Variable','Model',...
     'PACF','Entropy','LLE',...
+    'PACF_gain_percent',...
     'Score'});
-
 %% ================= SORT (BEST FIRST) ==================
 ResultTable = sortrows(ResultTable, ...
     {'Variable','Score'}, ...
