@@ -45,10 +45,15 @@ W    = [];
 for j = 1:Nbre_Run
 
     %% ================= RANDOM WEIGHTS ====================
-    Wj = 2*rand(Nbre_Hidden,p+1) - 1;
+    Wj = 0.08*(2*rand(Nbre_Hidden,p+1) - 1);
 
     %% ================= HIDDEN ACTIVATIONS ================
     A = Wj * I';
+
+%     if j == 1
+%         fprintf('std(A)=%.3f   max(|A|)=%.3f\n', ...
+%             std(A(:)), max(abs(A(:))));
+%     end
 
     % ---- Numerical stability
     A = max(min(A,50),-50);
@@ -134,7 +139,7 @@ if isempty(Beta)
 
     Beta = zeros(Nbre_Hidden+1,1);
 
-    W = 2*rand(Nbre_Hidden,p+1)-1;
+    W = 0.05*(2*rand(Nbre_Hidden,p+1)-1);
 
     nRMSE_best = NaN;
 

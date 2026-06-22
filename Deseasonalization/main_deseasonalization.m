@@ -25,7 +25,7 @@ end
 
 %% ================= METRICS =================
 %LLE = @(x) estimate_LLE(x,24,5,40);
-Labels = {'RAW','LOESS','FOURIER','MEDIAN','EL_Proj','EL_Phase'};
+Labels = {'RAW','LOESS','FOURIER','MEDIAN','Proj','Phase'};
 
 %% ================= LOAD DATA =================
 T = readtable('Data.xlsx','PreserveVariableNames',true);
@@ -158,18 +158,66 @@ parfor id = 1:nVar
 
     u = mod(t-1,samples_per_day) / samples_per_day;
     v = mod(t-1,H) / H;
-    [S_fourier,~] = crossed_fourier_deseason(series,u,v,3,3,1e-2);
+    [S_fourier,~] = crossed_fourier_deseason( ...
+    series,u,v,3,3,1e-2,H);
 
-    window_size = round(10 * samples_per_day / 24);
-    [S_median,~] = rolling_median_deseason(series,window_size);
-    %S_loess  = smoothdata(series,'loess',round(H/12));
-    S_loess = smoothdata(series,'loess',window_size);
+    window_size = round(24*30*samples_per_day / 24); 
 
+    
+    %% ===== MEDIAN TRAIN ONLY =====
+
+    train_signal = series(1:H);
+    
+    [S_train_median,~] = rolling_median_deseason( ...
+                         train_signal,...
+                         window_size,...
+                         samples_per_day);
+    
+    S_median = nan(size(series));
+    
+    Nyear = floor(length(series)/H);
+    
+    for yy = 1:Nyear
+    
+        i1 = (yy-1)*H + 1;
+        i2 = min(yy*H,length(series));
+    
+        L = i2 - i1 + 1;
+    
+        S_median(i1:i2) = S_train_median(1:L);
+    
+    end
+    S_loess = nan(size(series));
+
+    %% ===== LOESS TRAIN ONLY =====
+
+    train_signal = series(1:H);
+    
+    S_train = smoothdata( ...
+        train_signal,...
+        'loess',...
+        window_size);
+    
+    S_loess = nan(size(series));
+    
+    Nyear = floor(length(series)/H);
+    
+    for yy = 1:Nyear
+    
+        i1 = (yy-1)*H + 1;
+        i2 = min(yy*H,length(series));
+    
+        L = i2-i1+1;
+    
+        S_loess(i1:i2) = S_train(1:L);
+    
+    end
+        
 
     %% ===== ELM TRAIN / TEST  =====
     [R_ph, yte, S_te2, R_proj, S_te, h, ...
      S_raw, S_r1, S_r2, ~, Model] = ...
-     Make_stationary_all_variables(series, annee, horizon, m, H);
+     Make_stationary_all_variables(series, annee, horizon, m, H,name);
 
     %% ===== TEST WINDOW =====
     N_EL = numel(yte);
@@ -185,7 +233,7 @@ parfor id = 1:nVar
         R_ph
     };
 
-    %% ===== METRICS =====
+ 
     %% ===== METRICS =====
     maxLag = 2 * samples_per_day;
 
@@ -220,8 +268,7 @@ parfor id = 1:nVar
     Names{id}     = name;
 
     %% ===== FULL  =====
-    [S_proj_full, S_phase_full] = ...
-        apply_elm_full(series, Model, horizon, H);
+    [S_proj_full, S_phase_full] = apply_elm_full(series, Model, horizon, H, name);
 
     R_proj_full  = series - S_proj_full;
     R_phase_full = series - S_phase_full;

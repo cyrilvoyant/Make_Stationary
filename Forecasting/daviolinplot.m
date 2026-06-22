@@ -163,12 +163,6 @@ function h = daviolinplot(Y,varargin)
 %       lg - legend
 %
 %
-% For examples have a look at daviolinplot_demo.m
-% Also see: daboxplot.m and dabarplot.m
-%
-%
-% Povilas Karvelis
-% 05/05/2020
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h = struct;
@@ -283,7 +277,20 @@ end
 for g = 1:num_groups 
     
     % get percentiles
-    pt = prctile(Y(Gi==g,:),[2 9 25 50 75 91 98]); 
+    %pt = prctile(Y(Gi==g,:),[2 9 25 50 75 91 98]); 
+    
+    for kk = 1:size(Y,2)
+
+        tmp = Y(Gi==g,kk);
+        tmp = tmp(isfinite(tmp));
+    
+        if isempty(tmp)
+            pt(:,kk) = nan(7,1);
+        else
+            pt(:,kk) = prctile(tmp,[2 9 25 50 75 91 98]);
+        end
+    
+    end
     
     if size(pt,1)==1 pt=pt'; end % for plotting one condition
     
@@ -326,14 +333,58 @@ for g = 1:num_groups
     % draw one box at a time
     for k = 1:num_locs
         
-        data_vals = Y(Gi==g,k); % data for a single box        
-        
+        %data_vals = Y(Gi==g,k); % data for a single box        
+        data_vals = Y(Gi==g,k);
+        data_vals = data_vals(isfinite(data_vals));
+        if numel(data_vals) < 2
+            continue
+        end
         % estimate probability density of the data
+
+%         if strcmp(confs.smoothing,'default')
+%             [f,xi] = ksdensity(data_vals);
+%             
+%         else
+%             
+%             [f,xi] = ksdensity(data_vals,'Bandwidth',confs.smoothing);
+%             
+%         end  
+%         if strcmp(confs.smoothing,'default')
+%         
+%             [f,xi] = ksdensity(data_vals,...
+%                 'BoundaryCorrection','reflection',...
+%                 'Support',[0 Inf]);
+%         
+%         else
+%         
+%             [f,xi] = ksdensity(data_vals,...
+%                 'Bandwidth',confs.smoothing,...
+%                 'BoundaryCorrection','reflection',...
+%                 'Support',[0 Inf]);
+%         
+%         end
         if strcmp(confs.smoothing,'default')
             [f,xi] = ksdensity(data_vals);
         else
-            [f,xi] = ksdensity(data_vals,'Bandwidth',confs.smoothing);
-        end        
+            [f,xi] = ksdensity(data_vals,...
+                'Bandwidth',confs.smoothing);
+        end
+        % ==================================================
+        % truncate density below zero
+        % ==================================================
+        idx = xi >= 0;
+        
+        xi = xi(idx);
+        f  = f(idx);
+        
+        if isempty(xi)
+            continue
+        end
+        
+        if xi(1) > 0
+            xi = [0 xi];
+            f  = [0 f];
+        end
         % truncate the violins if needed
         if ~isempty(confs.violinmin) || ~isempty(confs.violinmax)
             
@@ -498,6 +549,7 @@ for g = 1:num_groups
         end        
     end        
     
+    
     % draw a line that links each group across conditions
     if confs.linkline==1
        h.ln(g) = line(gpos(g,:),pt(4,:),'color',confs.colors(g,:),...
@@ -525,5 +577,5 @@ set(gca,'XTick',cpos,'XTickLabels',cpos,'box','off');
 if ~isempty(confs.xtlabels)
     set(gca,'XTickLabels',confs.xtlabels,'XTick',cpos);
 end  
-xlim([gpos(1)-3*box_width, gpos(end)+3*box_width]); % adjust x-axis margins
+xlim([gpos(1)-3*box_width, gpos(end)+3*box_width]); % adjust x-axis margins -3*box_width
 end

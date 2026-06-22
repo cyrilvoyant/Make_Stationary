@@ -1,4 +1,4 @@
-function [S,R] = crossed_fourier_deseason(x,u,v,K,L,lambda)
+function [S,R] = crossed_fourier_deseason(x,u,v,K,L,lambda,Ntrain)
 % CROSSED_FOURIER_DESEASON
 % Crossed diurnal–annual Fourier deseasonalisation with ridge regularisation
 %
@@ -25,8 +25,14 @@ for k = 1:K
     end
 end
 
-theta = (Phi'*Phi + lambda*eye(size(Phi,2))) \ (Phi'*x);
+%theta = (Phi'*Phi + lambda*eye(size(Phi,2))) \ (Phi'*x);
+Phi_train = Phi(1:Ntrain,:);
+x_train   = x(1:Ntrain);
 
+theta = (Phi_train'*Phi_train + ...
+         lambda*eye(size(Phi_train,2))) ...
+         \ (Phi_train'*x_train);
 S = Phi * theta;
 R = x - S;
+
 end

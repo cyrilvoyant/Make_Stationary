@@ -42,8 +42,37 @@ for v = 1:nVar
 
         subplot(nVar,3,(v-1)*3 + m)
 
+        vals = DATA{m};
+    % ===== RANKS =====
+        if strcmp(MetricsNames{m},'Entropy')
+        
+            % plus grand = meilleur
+            [~,idx] = sort(vals,'descend');
+        
+        else
+        
+            % plus petit = meilleur
+            [~,idx] = sort(vals,'ascend');
+        
+        end
+        
+        Ranks = zeros(size(vals));
+        Ranks(idx) = 1:length(vals);
         b = bar(DATA{m},'FaceColor','flat');
+        hold on
 
+        for kk = 1:length(vals)
+        
+            text(kk,...
+                 vals(kk),...
+                 sprintf('%d',Ranks(kk)),...
+                 'HorizontalAlignment','center',...
+                 'VerticalAlignment','bottom',...
+                 'FontWeight','bold',...
+                 'FontSize',9);
+        
+        end
+        
         % Assign colors
         for k = 1:nMet
             b.CData(k,:) = colors(k,:);
@@ -79,4 +108,3 @@ end
 exportgraphics(gcf, fullfile(outdir,'ALL_VARIABLES_BARPLOT.png'), 'Resolution',300);
 
 disp('Figure saved');
-

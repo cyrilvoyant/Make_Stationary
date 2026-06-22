@@ -29,7 +29,7 @@ switch VariableName
         outdir = ...
             'GHI_30min_results_outputs_forecasting';
     
-        TRAIN_LEN = 2*8760*2;
+        TRAIN_LEN = 1*8760*2; %2
     
         %% LOAD DATA
         data = load( ...
@@ -64,7 +64,7 @@ switch VariableName
         outdir = ...
             'GHI_1h_results_outputs_forecasting';
     
-        TRAIN_LEN = 2*8760;
+        TRAIN_LEN = 1*8760; %2
     
         %% LOAD DATA
         data = load( ...
@@ -114,11 +114,11 @@ end
 
 if contains(VariableName,'30min')
 
-    Horizons = 2:2:12;
+    Horizons = 2:2:12; %12
 
 else
 
-    Horizons = 1:6;
+    Horizons = 1:6; %6
 
 end
 
@@ -127,8 +127,8 @@ MethodNames = { ...
     'LOESS', ...
     'FOURIER', ...
     'MEDIAN', ...
-    'EL_Projection', ...
-    'EL_Phase'};
+    'Projection', ...
+    'Phase'};
 
 %% =========================================================
 % LOAD DESEASONALIZATION RESULTS
@@ -205,27 +205,26 @@ for Horizon = Horizons
     %% =====================================================
 
     switch Horizon
+        
+            case 1
+                Nin = 52; Nh = 220;
 
-        case 1
-            Nin = 52; Nh = 220;
+            case 2
+                Nin = 50; Nh = 230;
 
-        case 2
-            Nin = 50; Nh = 230;
+            case 3
+                Nin = 49; Nh = 220;
 
-        case 3
-            Nin = 49; Nh = 220;
+            case 4
+                Nin = 51; Nh = 170;
 
-        case 4
-            Nin = 51; Nh = 170;
+            case 5
+                Nin = 46; Nh = 230;
 
-        case 5
-            Nin = 46; Nh = 230;
+            otherwise
+                Nin = 72; Nh = 220;
 
-        otherwise
-            Nin = 72; Nh = 220;
-
-    end
-
+        end
     %% =====================================================
     % STORAGE
     %% =====================================================

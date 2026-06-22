@@ -1,5 +1,4 @@
-function [S_proj_full, S_phase_full] = apply_elm_full(series, Model, LagH, H)
-
+function [S_proj_full, S_phase_full] = apply_elm_full(series, Model, LagH, H, VarName)
 series = series(:);
 N = numel(series);
 
@@ -37,6 +36,25 @@ phi_y = mod(t,Ny)/Ny;
 Xphase = [cos(2*pi*phi_d(:)) sin(2*pi*phi_d(:)) ...
           cos(2*pi*phi_y(:)) sin(2*pi*phi_y(:))];
 
+% Xphase = [];
+% 
+% % Harmoniques journalières
+% for kk = 1:6
+% 
+%     Xphase = [Xphase ...
+%         cos(2*pi*kk*phi_d(:)) ...
+%         sin(2*pi*kk*phi_d(:))];
+% 
+% end
+% 
+% % Harmoniques annuelles
+% for kk = 1:6
+% 
+%     Xphase = [Xphase ...
+%         cos(2*pi*kk*phi_y(:)) ...
+%         sin(2*pi*kk*phi_y(:))];
+% 
+% end
 %% ===================== PHASE =====================
 W = Model.phase.W;
 b = Model.phase.b;
@@ -56,37 +74,27 @@ Hproj = tanh([zeros(size(Xlags)) Xphase]*W + b);
 S_proj = (Hproj*beta + beta0)*sd + mu; 
 
 %% ===================== APPLY ALPHA =====================
-S_proj  = Model.alpha_proj  * S_proj;
-S_phase = Model.alpha_phase * S_phase;
+% S_proj  = Model.alpha_proj  * S_proj;
+% S_phase = Model.alpha_phase * S_phase;
+S_proj = Model.a_proj*S_proj + Model.b_proj;
+S_phase = Model.a_phase*S_phase + Model.b_phase;
+%% ===================== PHYSICAL CONSTRAINTS =====================
 
+isSolarVariable = any(strcmp(VarName,...
+    {'PV','GHI_30min','GHI_1h'}));
+
+if isSolarVariable
+
+    S_phase = max(0,S_phase);
+    S_proj  = max(0,S_proj);
+
+end
 %% ===================== FULL RECONSTRUCTION =====================
 S_phase_full = nan(N,1);
 S_proj_full  = nan(N,1);
 
 S_phase_full(idx + h) = S_phase;
 S_proj_full(idx + h)  = S_proj;
-
-%% ===================== PHYSICAL CONSTRAINTS =====================
-isNonNegative = min(series) >= 0;
-zeroRatio = mean(series < 0.02*max(series));
-isSolarLike = isNonNegative && zeroRatio > 0.25;
-
-if isSolarLike
-    
-    ytrue = max(0,series);
-    
-    % borne physique
-    S_phase_full = max(0, min(S_phase_full, ytrue));
-    S_proj_full  = max(0, min(S_proj_full,  ytrue));
-    
-    % nuit
-    seuil = 0.05*max(ytrue);
-    mask_night = ytrue < seuil;
-    
-    S_phase_full(mask_night) = 0;
-    S_proj_full(mask_night)  = 0;
-    
-end
 
 %% ===================== FINAL CLEAN =====================
 S_phase_full(~isfinite(S_phase_full)) = nan;

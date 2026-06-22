@@ -7,7 +7,7 @@ clear; close all; clc;
 %% =========================================================
 % FORECAST HORIZONS
 %% =========================================================
-Horizons_hourly = 1:6;
+Horizons_hourly = 1:1; %6
 %% =========================================================
 % METHODS
 %% =========================================================
@@ -16,8 +16,8 @@ MethodNames = { ...
     'LOESS', ...
     'FOURIER', ...
     'MEDIAN', ...
-    'EL_Projection', ...
-    'EL_Phase'};
+    'Projection', ...
+    'Phase'};
 
 %% =========================================================
 % VARIABLES
@@ -39,9 +39,9 @@ for v = 1:size(Variables,1)
     VarName = Variables{v,1};
     is_nonnegative = Variables{v,2};
     if contains(VarName,'30min')
-        Horizons = 2:2:12;
+        Horizons = 2:2:12; %12
     else
-        Horizons = 1:6;
+        Horizons = 1:6; %6
     end
 
     %% =====================================================
@@ -50,19 +50,19 @@ for v = 1:size(Variables,1)
     switch VarName
 
         case {'PV','WT','PT'}
-            TRAIN_LEN = 6*8760;
+            TRAIN_LEN = 1*8760; %6
 
         case {'WS_30min'}
-            TRAIN_LEN = 2*8760*2;
+            TRAIN_LEN = 1*8760*2;
 
         case {'WS_1h'}
-            TRAIN_LEN = 2*8760;
+            TRAIN_LEN = 1*8760;
         case {'T2M_30min'}
 
-            TRAIN_LEN = 2*8760*2;
+            TRAIN_LEN = 1*8760*2;
     
         case {'T2M_1h'}
-            TRAIN_LEN = 2*8760;
+            TRAIN_LEN = 1*8760;
             
     end
 
@@ -243,7 +243,7 @@ for v = 1:size(Variables,1)
             model = ['EL_' MethodNames{m}];
 
             [B,W] = Train_EL( ...
-                Xtr,Ytr,Nh,0.2,0.6,96);
+                Xtr,Ytr,Nh,0.2,0.6,96);% lamdda= 0.2 Nbr_run= 96
 
             [Rhat,~] = Pred_EL_R( ...
                 Xte,Yte,W,B,Nh,mu,sg);

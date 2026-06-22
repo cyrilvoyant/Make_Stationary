@@ -162,7 +162,7 @@ for v = 1:numel(Variables)
                 'xtlabels',string(Horizons_hourly));
 
             xlabel('Forecast horizon','FontWeight','bold')
-            ylim([0 inf])
+            %ylim([0 inf])
             ylabel(MetricsLabels_violin{im})
             title(MetricsLabels_violin{im})
 

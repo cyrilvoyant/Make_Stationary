@@ -23,8 +23,10 @@ for v = 1:numel(Variables)
 
     if contains(VarName,'30min')
         Horizons = 2:2:12;
+        samples_per_day = 48;
     else
         Horizons = 1:6;
+        samples_per_day = 24;
     end
     fprintf('\n==============================\n');
     fprintf(' POST-PROCESSING: %s\n',VarName);
@@ -81,7 +83,7 @@ for v = 1:numel(Variables)
             for ih = 1:numel(Horizons)
 
                 H = Horizons(ih);
-
+                
                 if contains(VarName,'30min')
                     HorizonHours = H/2;
                 else
@@ -95,26 +97,31 @@ for v = 1:numel(Variables)
 
                 if startsWith(ModelName,'Ref_')
 
-                    obs   = Tr.Observed(:);
-                    predM = Tr.(ModelName)(:);
+                    obs_full   = Tr.Observed(:);
+                    predM_full = Tr.(ModelName)(:);
                 
                 else
                 
-                    obs   = Tm.Observed(:);
-                    predM = Tm.(ModelName)(:);
+                    obs_full   = Tr.Observed(:);
+                    predM_full = Tm.(ModelName)(:);
                 
                 end
-                predP = Tr.Ref_P(:);
                 
+                predP_full = Tr.Ref_P(:);
+
                 % ==========================================
                 % ALIGN LENGTHS
                 % ==========================================
-                L = min([length(obs), length(predM), length(predP)]);
+                L = min([length(obs_full), ...
+                         length(predM_full), ...
+                         length(predP_full)]);
                 
-                obs   = obs(1:L);
-                predM = predM(1:L);
-                predP = predP(1:L);
+                obs   = obs_full(1:L);
+                predM = predM_full(1:L);
+                predP = predP_full(1:L);
                 
+                
+
                 % ==========================================
                 % REMOVE INVALID VALUES
                 % ==========================================
@@ -126,9 +133,9 @@ for v = 1:numel(Variables)
                 predM = predM(valid);
                 predP = predP(valid);
 
-                DM = daily_metrics_from_series(obs, predM);
-                DP = daily_metrics_from_series(obs, predP);
-
+                DM = daily_metrics_from_series(obs,predM,samples_per_day);
+                DP = daily_metrics_from_series(obs,predP,samples_per_day);                  
+                
                 metric = MetricsNames_violin{im};
 
                 Mcell{ih} = DM.(metric);
@@ -153,16 +160,16 @@ for v = 1:numel(Variables)
                     Pmat(end-numel(pv)+1:end,ih) = pv;
                 end
             end
-         
+            
+            
             %% VIOLIN
             hV = daviolinplot({Pmat,Mmat},...
                 'violin','full',...
-                'violinmin',0, ...
                 'colors',[0.7 0.7 0.7; 0 0.447 0.741],...
                 'xtlabels',string(Horizons_hourly));
 
             xlabel('Forecast horizon','FontWeight','bold')
-            ylim([0 inf])
+            %ylim([0 inf])
             ylabel(MetricsLabels_violin{im})
             title(MetricsLabels_violin{im})
 
@@ -252,10 +259,11 @@ for v = 1:numel(Variables)
         
         TmREF = readtable(fullfile(ForecastDir,...
             sprintf('Forecasts_REF_%gH.csv',HorizonHours)));
-        
-        obs = TmEL.Observed(:);
+       
 
         figure('Color','w','Position',[100 100 1400 900]);
+
+        obs_full = TmEL.Observed(:);
 
         for k = 1:numel(ModelNames)
 
@@ -268,10 +276,10 @@ for v = 1:numel(Variables)
                 pred = TmEL.(ModelNames{k})(:);
             
             end
-            
-            L = min(length(obs),length(pred));
-            
-            obs  = obs(1:L);
+
+            L = min(length(obs_full),length(pred));
+
+            obs = obs_full(1:L);
             pred = pred(1:L);
             
             valid = isfinite(obs) & isfinite(pred);
@@ -310,17 +318,13 @@ disp('=== ALL VARIABLES PLOTTED ===')
 %% =====================================================
       %   Daily distribution metrics Function
 %% =====================================================
-function D = daily_metrics_from_series(obs,pred)
+%function D = daily_metrics_from_series(obs,pred)
+function D = daily_metrics_from_series(obs,pred,samples_per_day)
 
 % ======================================================
 % DAILY METRICS COMPUTATION
 % ======================================================
 
-if length(obs) > 30000
-    samples_per_day = 48;
-else
-    samples_per_day = 24;
-end
 
 obs  = obs(:);
 pred = pred(:);
@@ -397,11 +401,12 @@ for d = 1:Nd
     % NORMALIZATION
     %% --------------------------------------------------
     global_scale = mean(abs(obs(:)));
+    %global_scale = mean(abs(o));
 
     if global_scale < 1e-6
         global_scale = 1;
     end
-    
+   
     D.nRMSE(d) = sqrt(mean(e.^2)) / global_scale;
     
     D.nMAE(d) = mean(abs(e)) / global_scale;
