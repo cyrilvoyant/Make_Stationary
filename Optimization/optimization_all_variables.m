@@ -64,7 +64,7 @@ for v = 1:size(DataList,1)
     fprintf('Variable: %s\n', VarName);
     fprintf('==============================\n');
 
-    % -------- Resolution handling
+    % Resolution handling
     if is30min
         H = 8760*2;
         LagH_list = LagH_base*2;
