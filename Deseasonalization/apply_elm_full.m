@@ -36,25 +36,6 @@ phi_y = mod(t,Ny)/Ny;
 Xphase = [cos(2*pi*phi_d(:)) sin(2*pi*phi_d(:)) ...
           cos(2*pi*phi_y(:)) sin(2*pi*phi_y(:))];
 
-% Xphase = [];
-% 
-% % Harmoniques journalières
-% for kk = 1:6
-% 
-%     Xphase = [Xphase ...
-%         cos(2*pi*kk*phi_d(:)) ...
-%         sin(2*pi*kk*phi_d(:))];
-% 
-% end
-% 
-% % Harmoniques annuelles
-% for kk = 1:6
-% 
-%     Xphase = [Xphase ...
-%         cos(2*pi*kk*phi_y(:)) ...
-%         sin(2*pi*kk*phi_y(:))];
-% 
-% end
 %% ===================== PHASE =====================
 W = Model.phase.W;
 b = Model.phase.b;
@@ -74,8 +55,6 @@ Hproj = tanh([zeros(size(Xlags)) Xphase]*W + b);
 S_proj = (Hproj*beta + beta0)*sd + mu; 
 
 %% ===================== APPLY ALPHA =====================
-% S_proj  = Model.alpha_proj  * S_proj;
-% S_phase = Model.alpha_phase * S_phase;
 S_proj = Model.a_proj*S_proj + Model.b_proj;
 S_phase = Model.a_phase*S_phase + Model.b_phase;
 %% ===================== PHYSICAL CONSTRAINTS =====================
