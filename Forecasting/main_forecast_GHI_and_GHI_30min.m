@@ -29,7 +29,7 @@ switch VariableName
         outdir = ...
             'GHI_30min_results_outputs_forecasting';
     
-        TRAIN_LEN = 1*8760*2; %2
+        TRAIN_LEN = 1*8760*2; #2
     
         %% LOAD DATA
         data = load( ...
