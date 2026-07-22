@@ -68,36 +68,7 @@ Xphase_tr = [cos(2*pi*phi_d_tr(:)) sin(2*pi*phi_d_tr(:)) ...
 
 Xphase_te = [cos(2*pi*phi_d_te(:)) sin(2*pi*phi_d_te(:)) ...
              cos(2*pi*phi_y_te(:)) sin(2*pi*phi_y_te(:))];
-%% ===================== FOURIER PHASE FEATURES =====================
 
-% Xphase_tr = [];
-% Xphase_te = [];
-% 
-% % Harmoniques journalières
-% for kk = 1:6
-% 
-%     Xphase_tr = [Xphase_tr ...
-%         cos(2*pi*kk*phi_d_tr(:)) ...
-%         sin(2*pi*kk*phi_d_tr(:))];
-% 
-%     Xphase_te = [Xphase_te ...
-%         cos(2*pi*kk*phi_d_te(:)) ...
-%         sin(2*pi*kk*phi_d_te(:))];
-% 
-% end
-% 
-% % Harmoniques annuelles
-% for kk = 1:6
-% 
-%     Xphase_tr = [Xphase_tr ...
-%         cos(2*pi*kk*phi_y_tr(:)) ...
-%         sin(2*pi*kk*phi_y_tr(:))];
-% 
-%     Xphase_te = [Xphase_te ...
-%         cos(2*pi*kk*phi_y_te(:)) ...
-%         sin(2*pi*kk*phi_y_te(:))];
-% 
-% end
 y_tr = Z_train(idx_tr + h);
 y_te = Z_test(idx_te + h);
 
@@ -118,25 +89,6 @@ for k=1:K
     isSolarVariable = any(strcmp(VarName,...
     {'PV','GHI_30min','GHI_1h'}));
     
-% %     A = (1:200)'/100;
-% %     
-% %     Ealpha = abs(ytrue_tr(:)' - S_tr(:)'.*A);
-% %     
-% %     [~,idAlpha] = min(mean(Ealpha,2,'omitnan'));
-% %     
-% %     alpha_phase_train = A(idAlpha);
-% %     
-% %     err = mean((alpha_phase_train*S_tr - ytrue_tr).^2,'omitnan');
-
-%     A = (1:200)'/100;
-%     
-%     Ealpha = abs(ytrue_tr(:)' - S_tr(:)'.*A);
-%     
-%     [~,idAlpha] = min(mean(Ealpha,2,'omitnan'));
-%     
-%     alpha_phase_train = A(idAlpha);
-%     
-%     Rtmp = ytrue_tr - alpha_phase_train*S_tr;
 
         Xreg = [ones(length(S_tr),1) S_tr(:)];
 
@@ -200,22 +152,6 @@ for k=1:K
     S_tr = (Hproj*beta + beta0)*sd_train + mu_train;
     ytrue_tr = y_tr*sd_train + mu_train;
     
-% %     A = (1:200)'/100;
-% %     
-% %     Ealpha = abs(ytrue_tr(:)' - S_tr(:)'.*A);
-% %     
-% %     [~,idAlpha] = min(mean(Ealpha,2,'omitnan'));
-% %     
-% %     alpha_proj_train = A(idAlpha);
-% %     
-% %     err = mean((alpha_proj_train*S_tr - ytrue_tr).^2,'omitnan');
-%      A = (1:200)'/100;
-%     
-%     Ealpha = abs(ytrue_tr(:)' - S_tr(:)'.*A);
-%     
-%     [~,idAlpha] = min(mean(Ealpha,2,'omitnan'));
-%     
-%     alpha_proj_train = A(idAlpha);
     Xreg = [ones(length(S_tr),1) S_tr(:)];
     
     coef = Xreg \ ytrue_tr(:);
@@ -267,18 +203,6 @@ Model.sd = sd_train;
 
 %% ===================== ALPHA (TRAIN ONLY) =====================
 
-% alpha_proj  = best_alpha_proj;
-% alpha_phase = best_alpha_phase;
-% 
-% S_te  = alpha_proj  * S_te;
-% S_te2 = alpha_phase * S_te2;
-% 
-% Model.alpha_proj  = alpha_proj;
-% Model.alpha_phase = alpha_phase;
-% 
-% best_alpha1 = alpha_proj;
-% 
-% ytrue_te = y_te*sd_train + mu_train;
 
 ytrue_te = y_te*sd_train + mu_train;
 S_te  = best_a_proj  * S_te  + best_b_proj;
