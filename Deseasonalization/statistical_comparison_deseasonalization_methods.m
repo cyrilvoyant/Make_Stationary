@@ -6,7 +6,7 @@
 clear; clc; close all;
 
 %% ================= PATH =============================
-file = 'C:/Users/HP/Downloads/Prof_Cyril Voyant_Proposition_Collaboration/Maklewa/final_deseasonalization_code_22_05_2026/results_final_pipeline/Metrics.csv';
+file = 'results_final_pipeline/Metrics.csv';
 
 T = readtable(file);
 

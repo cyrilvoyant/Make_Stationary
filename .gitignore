@@ -1,7 +1,6 @@
 # MATLAB project files
 *.asv
 *.mex*
-*.mat
 *.fig
 *.mlx
 *.mlapp
@@ -30,13 +29,5 @@ desktop.ini
 .vscode/
 .idea/
 
-# Jupyter (si tu utilises du python)
+# Jupyter
 .ipynb_checkpoints/
-
-# Data files to avoid versioning (optionnel)
-*.csv
-*.xlsx
-*.xls
-*.h5
-Data/
-data/
