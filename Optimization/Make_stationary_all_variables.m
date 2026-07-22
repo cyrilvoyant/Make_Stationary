@@ -3,11 +3,11 @@ function [R_te2, ytrue_te, S_te2, R_te, S_te, h, ...
           Make_stationary_all_variables(series, annee, LagH, m, H)
 
 % =========================================================================
-% MAKE_STATIONARY_ALL_VARIABLES — Décomposition saisonnière ELM universelle
+% MAKE_STATIONARY_ALL_VARIABLES — Décomposition saisonnière avec ELM 
 %
 % OBJECTIF
 %   Extraire la composante saisonnière S(t) d'une série énergétique ou
-%   météorologique (PV, WT, PT, GHI, WS, T2M, etc.)
+%   météorologique (PV, WT, PT, GHI, WS, T2M)
 %   sur deux années consécutives :
 %       - 1 an TRAIN
 %       - 1 an TEST
