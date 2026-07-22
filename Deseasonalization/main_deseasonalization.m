@@ -75,7 +75,6 @@ GHI_1h(GHI_1h < 0) = 0;
 save('AJACCIO_station9_1H_T2M_GHI.mat','GHI_1h','T2M_1h','time_grid_1h');
 
 disp('=== AJACCIO 30MIN + 1H DATASETS CREATED ===');
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
 %% =====================================================
 % LOAD AJACCIO 30MIN DATA
