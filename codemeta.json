@@ -11,12 +11,74 @@
   "programmingLanguage": "MATLAB",
   "developmentStatus": "active",
   "applicationCategory": "Renewable energy forecasting",
-  "keywords": ["deseasonalization", "cyclostationarity", "extreme learning machine", "renewable energy forecasting", "phase projection", "stationarity"],
+  "keywords": [
+    "deseasonalization",
+    "cyclostationarity",
+    "extreme learning machine",
+    "renewable energy forecasting",
+    "phase projection",
+    "stationarity"
+  ],
   "author": [
-    {"@type": "Person", "givenName": "Maklewa", "familyName": "Agoundedemba", "@id": "https://orcid.org/0000-0001-7537-4080", "affiliation": {"@type": "Organization", "name": "Department of Physics, Kenyatta University, Nairobi, Kenya"}},
-    {"@type": "Person", "givenName": "Cyril", "familyName": "Voyant", "@id": "https://orcid.org/0000-0003-0242-7377", "url": "https://person.cyrilvoyant.com", "affiliation": {"@type": "Organization", "name": "Mines Paris - PSL, Centre Observation, Impacts, Energie (O.I.E.), Sophia Antipolis, France"}},
-    {"@type": "Person", "givenName": "Milan", "familyName": "Despotovic", "@id": "https://orcid.org/0000-0003-3144-5945", "affiliation": {"@type": "Organization", "name": "Faculty of Engineering, University of Kragujevac, Serbia"}},
-    {"@type": "Person", "givenName": "Luis Antonio", "familyName": "Garcia-Gutierrez", "@id": "https://orcid.org/0000-0002-3480-1784", "affiliation": {"@type": "Organization", "name": "SPE Laboratory, University of Corsica, Ajaccio, France"}},
-    {"@type": "Person", "givenName": "Gilles", "familyName": "Notton", "affiliation": {"@type": "Organization", "name": "SPE Laboratory, University of Corsica, Ajaccio, France"}}
+    {
+      "@type": "Person",
+      "givenName": "Maklewa",
+      "familyName": "Agoundedemba",
+      "@id": "https://orcid.org/0000-0001-7537-4080",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Department of Physics, Kenyatta University, Nairobi, Kenya",
+        "@id": "https://ror.org/05p2z3x69",
+        "identifier": "https://ror.org/05p2z3x69"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Cyril",
+      "familyName": "Voyant",
+      "@id": "https://orcid.org/0000-0003-0242-7377",
+      "url": "https://person.cyrilvoyant.com",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Mines Paris - PSL, Centre Observation, Impacts, Energie (O.I.E.), Sophia Antipolis, France",
+        "@id": "https://ror.org/04y8cs423",
+        "identifier": "https://ror.org/04y8cs423"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Milan",
+      "familyName": "Despotovic",
+      "@id": "https://orcid.org/0000-0003-3144-5945",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Faculty of Engineering, University of Kragujevac, Serbia",
+        "@id": "https://ror.org/04f7vj627",
+        "identifier": "https://ror.org/04f7vj627"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Luis Antonio",
+      "familyName": "Garcia-Gutierrez",
+      "@id": "https://orcid.org/0000-0002-3480-1784",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "SPE Laboratory, University of Corsica, Ajaccio, France",
+        "@id": "https://ror.org/050ra0n32",
+        "identifier": "https://ror.org/050ra0n32"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Gilles",
+      "familyName": "Notton",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "SPE Laboratory, University of Corsica, Ajaccio, France",
+        "@id": "https://ror.org/050ra0n32",
+        "identifier": "https://ror.org/050ra0n32"
+      }
+    }
   ]
 }
