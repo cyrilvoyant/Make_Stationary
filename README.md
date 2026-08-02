@@ -1,5 +1,6 @@
 # Make_Stationary
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21490744.svg)](https://doi.org/10.5281/zenodo.21490744)
 MATLAB implementation of **"Does Stationarization Help? A Frugal Benchmark of Deseasonalization for Renewable Energy Forecasting"**.
 
 Two frugal, phase-conditioned Extreme Learning Machine (ELM) operators - **PROJECTION** and **PHASE** - are used as controlled instruments to test whether removing the deterministic diurnal/annual cycle of a renewable-energy or meteorological time series actually improves downstream forecasting, rather than assuming it does. Both operators estimate the seasonal component in closed form from a single annual cycle, with no harmonic specification and no iterative tuning. They are benchmarked against a crossed **FOURIER** regression, a **LOESS** smoother, and a non-parametric **rolling-median** template, and against direct forecasting on the **RAW** signal, over nine variables (GHI, T2M, wind speed, PV, wind power, total electrical load) and forecast horizons from 1 to 6 h.
