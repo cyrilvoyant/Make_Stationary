@@ -1,0 +1,22 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "name": "Make_Stationary: Frugal ELM-based deseasonalization for renewable-energy time series",
+  "description": "A frugal deseasonalization operator based on phase-conditioned Extreme Learning Machines, used as a controlled instrument to test whether removing the deterministic diurnal and annual cycle of renewable-energy and meteorological time series improves downstream forecasting. Two variants, PROJECTION and PHASE, are benchmarked against FOURIER, LOESS and rolling-median deseasonalization, and against direct forecasting on the raw signal, over nine variables and horizons from 1 to 6 hours, on data from Corsica, France.",
+  "version": "1.0.0",
+  "dateModified": "2025-11-08",
+  "license": "https://spdx.org/licenses/GPL-3.0",
+  "codeRepository": "https://github.com/cyrilvoyant/Make_Stationary",
+  "identifier": "https://doi.org/10.5281/zenodo.21490744",
+  "programmingLanguage": "MATLAB",
+  "developmentStatus": "active",
+  "applicationCategory": "Renewable energy forecasting",
+  "keywords": ["deseasonalization", "cyclostationarity", "extreme learning machine", "renewable energy forecasting", "phase projection", "stationarity"],
+  "author": [
+    {"@type": "Person", "givenName": "Maklewa", "familyName": "Agoundedemba", "@id": "https://orcid.org/0000-0001-7537-4080", "affiliation": {"@type": "Organization", "name": "Department of Physics, Kenyatta University, Nairobi, Kenya"}},
+    {"@type": "Person", "givenName": "Cyril", "familyName": "Voyant", "@id": "https://orcid.org/0000-0003-0242-7377", "url": "https://person.cyrilvoyant.com", "affiliation": {"@type": "Organization", "name": "Mines Paris - PSL, Centre Observation, Impacts, Energie (O.I.E.), Sophia Antipolis, France"}},
+    {"@type": "Person", "givenName": "Milan", "familyName": "Despotovic", "@id": "https://orcid.org/0000-0003-3144-5945", "affiliation": {"@type": "Organization", "name": "Faculty of Engineering, University of Kragujevac, Serbia"}},
+    {"@type": "Person", "givenName": "Luis Antonio", "familyName": "Garcia-Gutierrez", "@id": "https://orcid.org/0000-0002-3480-1784", "affiliation": {"@type": "Organization", "name": "SPE Laboratory, University of Corsica, Ajaccio, France"}},
+    {"@type": "Person", "givenName": "Gilles", "familyName": "Notton", "affiliation": {"@type": "Organization", "name": "SPE Laboratory, University of Corsica, Ajaccio, France"}}
+  ]
+}
