@@ -47,7 +47,7 @@ DataList = [DataList; {
 
 %% ================= GRID =================
 
-LagH_base   = 12:12:60;
+LagH_base   = 24:12:72;
 m_list      = 100:100:1600;
 
 AllBest = [];
