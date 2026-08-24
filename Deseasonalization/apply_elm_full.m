@@ -22,8 +22,8 @@ for i = 0:LagH
 end
 
 % --- PHASES ---
-if H == 8760*4
-    Nd = 96; Ny = 365*96;
+if H == 8760*2
+    Nd = 48; Ny = 365*48;
 else
     Nd = 24; Ny = 365*24;
 end

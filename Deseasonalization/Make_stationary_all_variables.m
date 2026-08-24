@@ -48,8 +48,8 @@ for i=0:LagH
 end
 
 % PHASES
-if H == 8760*4
-    Nd = 96; Ny = 365*96;
+if H == 8760*2
+    Nd = 48; Ny = 365*48;
 else
     Nd = 24; Ny = 365*24;
 end
@@ -150,9 +150,9 @@ for k=1:K
         Rtmp = ytrue_tr - S_tr_cal;
           
     try
-%         p = parcorr(Rtmp,'NumLags',48);
-%         err = nansum(abs(p(2:end)));
-        err = abs(corr( Rtmp(25:end), Rtmp(1:end-24), 'Rows','complete'));
+        p = parcorr(Rtmp,'NumLags',96);
+        err = nansum(abs(p(2:end)));
+        %err = abs(corr( Rtmp(25:end), Rtmp(1:end-24), 'Rows','complete'));
     catch
         err = Inf;
     end
