@@ -53,7 +53,7 @@ valid = isfinite(obs) & isfinite(pred);
 
 obs  = obs(valid);
 pred = pred(valid);
-
+pred(obs == 0) = 0;
 if isempty(obs)
     nRMSE = NaN; nMAE = NaN; R2 = NaN; r2 = NaN; nMBE = NaN;
     return;
