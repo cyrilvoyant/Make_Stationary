@@ -4,7 +4,7 @@ clear; clc; close all;
 outdir = 'deseasonalisation_plot_results';
 if ~exist(outdir,'dir'), mkdir(outdir); end
 
-T = readtable('C:/Users/HP/Downloads/Prof_Cyril Voyant_Proposition_Collaboration/Maklewa/final_deseasonalization_code_22_05_2026/results_final_pipeline/Metrics.csv');
+T = readtable('results_final_pipeline/Metrics.csv');
 
 Methods = T.Signal;
 

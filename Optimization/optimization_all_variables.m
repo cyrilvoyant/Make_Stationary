@@ -47,7 +47,7 @@ DataList = [DataList; {
 
 %% ================= GRID =================
 
-LagH_base   = 12:12:60;
+LagH_base   = 24:12:72;
 m_list      = 100:100:1600;
 
 AllBest = [];
@@ -64,7 +64,7 @@ for v = 1:size(DataList,1)
     fprintf('Variable: %s\n', VarName);
     fprintf('==============================\n');
 
-    % -------- Resolution handling
+    % Resolution handling
     if is30min
         H = 8760*2;
         LagH_list = LagH_base*2;
