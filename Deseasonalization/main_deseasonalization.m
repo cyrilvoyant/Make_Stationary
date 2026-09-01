@@ -203,7 +203,7 @@ parfor id = 1:nVar
     Nyear = floor(length(series)/H);
     
     for yy = 1:Nyear
-    
+    vb
         i1 = (yy-1)*H + 1;
         i2 = min(yy*H,length(series));
     

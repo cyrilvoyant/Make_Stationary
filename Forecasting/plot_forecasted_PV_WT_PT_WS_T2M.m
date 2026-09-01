@@ -77,8 +77,12 @@ for v = 1:numel(Variables)
         for im = 1:numel(MetricsNames_violin)
             subplot(2,1,im); hold on
 
-            Pcell = cell(numel(Horizons),1);
-            Mcell = cell(numel(Horizons),1);
+%             Pcell = cell(numel(Horizons),1);
+%             Mcell = cell(numel(Horizons),1);
+            
+            Pcell   = cell(numel(Horizons),1);
+            RAWcell = cell(numel(Horizons),1);
+            Mcell   = cell(numel(Horizons),1);
 
             for ih = 1:numel(Horizons)
 
@@ -108,50 +112,70 @@ for v = 1:numel(Variables)
                 end
                 
                 predP_full = Tr.Ref_P(:);
+                predRAW_full = Tm.EL_RAW(:);
 
                 % ==========================================
                 % ALIGN LENGTHS
                 % ==========================================
+%                 L = min([length(obs_full), ...
+%                          length(predM_full), ...
+%                          length(predP_full)]);
                 L = min([length(obs_full), ...
                          length(predM_full), ...
-                         length(predP_full)]);
-                
+                         length(predP_full), ...
+                         length(predRAW_full)]);
+
                 obs   = obs_full(1:L);
                 predM = predM_full(1:L);
                 predP = predP_full(1:L);
-                
+                predRAW = predRAW_full(1:L);
                 
 
                 % ==========================================
                 % REMOVE INVALID VALUES
                 % ==========================================
+%                 valid = isfinite(obs) & ...
+%                         isfinite(predM) & ...
+%                         isfinite(predP);
                 valid = isfinite(obs) & ...
                         isfinite(predM) & ...
-                        isfinite(predP);
-                
+                        isfinite(predP) & ...
+                        isfinite(predRAW);
                 obs   = obs(valid);
                 predM = predM(valid);
                 predP = predP(valid);
+                predRAW = predRAW(valid);
 
                 DM = daily_metrics_from_series(obs,predM,samples_per_day);
-                DP = daily_metrics_from_series(obs,predP,samples_per_day);                  
+                DP = daily_metrics_from_series(obs,predP,samples_per_day); 
+                DRAW = daily_metrics_from_series(obs,predRAW,samples_per_day);
                 
                 metric = MetricsNames_violin{im};
 
                 Mcell{ih} = DM.(metric);
                 Pcell{ih} = DP.(metric);
+                RAWcell{ih} = DRAW.(metric);
             end
 
             %% MATRIX
+%             maxN = max(cellfun(@numel,Mcell));
+%             maxN = max(maxN, max(cellfun(@numel,Pcell)));
             maxN = max(cellfun(@numel,Mcell));
             maxN = max(maxN, max(cellfun(@numel,Pcell)));
+            maxN = max(maxN, max(cellfun(@numel,RAWcell)));
 
-            Mmat = nan(maxN,numel(Horizons));
-            Pmat = nan(maxN,numel(Horizons));
+%             Mmat = nan(maxN,numel(Horizons));
+%             Pmat = nan(maxN,numel(Horizons));
+            Pmat   = nan(maxN,numel(Horizons));
+            RAWmat = nan(maxN,numel(Horizons));
+            Mmat   = nan(maxN,numel(Horizons));
 
             for ih=1:numel(Horizons)
-                mv = Mcell{ih};
+%                 mv = Mcell{ih};
+%                 pv = Pcell{ih};
                 pv = Pcell{ih};
+                rv = RAWcell{ih};
+                mv = Mcell{ih};
 
                 if ~isempty(mv)
                     Mmat(end-numel(mv)+1:end,ih) = mv;
@@ -159,32 +183,78 @@ for v = 1:numel(Variables)
                 if ~isempty(pv)
                     Pmat(end-numel(pv)+1:end,ih) = pv;
                 end
+                if ~isempty(rv)
+                    RAWmat(end-numel(rv)+1:end,ih) = rv;
+                end
             end
             
             
+            [p,~,~] = signrank(abs(obs-predRAW),abs(obs-predM));
             %% VIOLIN
-            hV = daviolinplot({Pmat,Mmat},...
+            %hV = daviolinplot({Pmat,Mmat},...
+            %'colors',[0.7 0.7 0.7; 0 0.447 0.741],...
+            hV = daviolinplot({Pmat,RAWmat,Mmat},...
                 'violin','full',...
-                'colors',[0.7 0.7 0.7; 0 0.447 0.741],...
+                'colors',[...
+                        0.7 0.7 0.7;          % Persistence
+                        0.8500 0.3250 0.0980; % EL_RAW
+                        0 0.4470 0.7410],...
                 'xtlabels',string(Horizons_hourly));
 
-            xlabel('Forecast horizon','FontWeight','bold')
-            %ylim([0 inf])
-            ylabel(MetricsLabels_violin{im})
-            title(MetricsLabels_violin{im})
+%             text(0.02,0.97,...
+%                 'Wilcoxon: p < 0.001',...
+%                 'Units','normalized',...
+%                 'FontSize',14,...
+%                 'FontWeight','bold',...
+%                 'VerticalAlignment','top')
+            if p < 0.001
+                ptxt = 'p < 0.001';
+            else
+                ptxt = sprintf('p = %.3f',p);
+            end
+            
+%             text(0.02,0.97,...
+%                 ptxt,...
+%                 'Units','normalized',...
+%                 'FontSize',14,...
+%                 'FontWeight','bold',...
+%                 'VerticalAlignment','top')
+%                         xlabel('Forecast horizon',...
+%                             'FontSize',16,...
+%                             'FontWeight','bold')
+            text(0.98,0.97,...
+            ptxt,...
+            'Units','normalized',...
+            'HorizontalAlignment','right',...
+            'VerticalAlignment','top',...
+            'FontSize',14,...
+            'FontWeight','bold',...
+            'BackgroundColor','w',...
+            'Margin',2)
+        
+                    ylabel(MetricsLabels_violin{im},...
+                        'FontSize',16,...
+                        'FontWeight','bold')
+            
+            set(gca,'FontSize',15)
+            title(MetricsLabels_violin{im},...
+                'FontSize',16,...
+                'FontWeight','bold')
 
             %% 
             hold on
-            h1 = plot(nan,nan,'s','MarkerFaceColor',[0.7 0.7 0.7],'MarkerEdgeColor','k');
-            h2 = plot(nan,nan,'s','MarkerFaceColor',[0 0.447 0.741],'MarkerEdgeColor','k');
 
-            legend([h1 h2],{'Persistence',ModelName},...
-                'Interpreter','none','Location','best')
+            h1 = plot(nan,nan,'s','MarkerFaceColor',[0.7 0.7 0.7],'MarkerEdgeColor','k');
+            h2 = plot(nan,nan,'s','MarkerFaceColor',[0.8500 0.3250 0.0980],'MarkerEdgeColor','k');
+            h3 = plot(nan,nan,'s','MarkerFaceColor',[0 0.4470 0.7410],'MarkerEdgeColor','k');
+            
+            legend([h1 h2 h3],{'Persistence','EL_RAW',ModelName},...
+                   'Interpreter','none','Location','best')
 
         end
 
-        sgtitle(sprintf('%s — %s',VarName,ModelName),...
-            'Interpreter','none','FontSize',14,'FontWeight','bold')
+%         sgtitle(sprintf('%s — %s',VarName,ModelName),...
+%             'Interpreter','none','FontSize',14,'FontWeight','bold')
 
         saveas(gcf, fullfile(figDir,...
             sprintf('%s_Violin_%s.png',VarName,ModelName)));
@@ -238,7 +308,7 @@ for v = 1:numel(Variables)
             grid on
         end
 
-        sgtitle(sprintf('%s-Global Metrics (H=%dh)',VarName,H),...
+        sgtitle(sprintf('%s-Global Metrics (H=%dh)',VarName,HorizonHours),...
             'Interpreter','none','FontSize',14,'FontWeight','bold')
 
         saveas(gcf, fullfile(figDir,...

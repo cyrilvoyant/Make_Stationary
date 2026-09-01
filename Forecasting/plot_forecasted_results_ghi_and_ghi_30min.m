@@ -105,45 +105,51 @@ for v = 1:numel(Variables)
                 
                 end
                 predP = TmREF.Ref_P(:);
-                
+                predRAW = TmEL.EL_RAW(:);
                 % ==========================================
                 % ALIGN LENGTHS
                 % ==========================================
-                L = min([length(obs), length(predM), length(predP)]);
+                L = min([length(obs), length(predM), length(predP),length(predRAW)]);
                 
                 obs   = obs(1:L);
                 predM = predM(1:L);
                 predP = predP(1:L);
-                
+                predRAW = predRAW(1:L);
                 % ==========================================
                 % REMOVE INVALID VALUES
                 % ==========================================
                 valid = isfinite(obs) & ...
                         isfinite(predM) & ...
-                        isfinite(predP);
+                        isfinite(predP)&...
+                        isfinite(predRAW);
                 
                 obs   = obs(valid);
                 predM = predM(valid);
                 predP = predP(valid);
+                predRAW= predRAW(valid);
 
                 DM = daily_metrics_from_series(obs, predM);
                 DP = daily_metrics_from_series(obs, predP);
-
+                DRAW = daily_metrics_from_series(obs, predRAW);
                 metric = MetricsNames_violin{im};
 
                 Mcell{ih} = DM.(metric);
                 Pcell{ih} = DP.(metric);
+                RAWcell{ih} = DRAW.(metric);
             end
 
             %% MATRIX
             maxN = max(cellfun(@numel,Mcell));
             maxN = max(maxN, max(cellfun(@numel,Pcell)));
+            maxN = max(maxN, max(cellfun(@numel,RAWcell)));
 
             Mmat = nan(maxN,numel(Horizons));
+            RAWmat = nan(maxN,numel(Horizons));
             Pmat = nan(maxN,numel(Horizons));
 
             for ih=1:numel(Horizons)
                 mv = Mcell{ih};
+                rv = RAWcell{ih};
                 pv = Pcell{ih};
 
                 if ~isempty(mv)
@@ -152,13 +158,18 @@ for v = 1:numel(Variables)
                 if ~isempty(pv)
                     Pmat(end-numel(pv)+1:end,ih) = pv;
                 end
+                 if ~isempty(rv)
+                    RAWmat(end-numel(rv)+1:end,ih) = rv;
+                end
             end
 
             %% VIOLIN
-            hV = daviolinplot({Pmat,Mmat},...
+            hV = daviolinplot({Pmat,RAWmat,Mmat},...
                 'violin','full',...
-                'violinmin',0, ...
-                'colors',[0.7 0.7 0.7; 0 0.447 0.741],...
+                'colors',[...
+                        0.7 0.7 0.7;          % Persistence
+                        0.8500 0.3250 0.0980; % EL_RAW
+                        0 0.4470 0.7410],...
                 'xtlabels',string(Horizons_hourly));
 
             xlabel('Forecast horizon','FontWeight','bold')
@@ -169,10 +180,16 @@ for v = 1:numel(Variables)
             %% 
             hold on
             h1 = plot(nan,nan,'s','MarkerFaceColor',[0.7 0.7 0.7],'MarkerEdgeColor','k');
-            h2 = plot(nan,nan,'s','MarkerFaceColor',[0 0.447 0.741],'MarkerEdgeColor','k');
-
-            legend([h1 h2],{'Persistence',ModelName},...
-                'Interpreter','none','Location','best')
+            h2 = plot(nan,nan,'s','MarkerFaceColor',[0.8500 0.3250 0.0980],'MarkerEdgeColor','k');
+            h3 = plot(nan,nan,'s','MarkerFaceColor',[0 0.4470 0.7410],'MarkerEdgeColor','k');
+            
+            legend([h1 h2 h3],{'Persistence','EL_RAW',ModelName},...
+                   'Interpreter','none','Location','best')
+%             h1 = plot(nan,nan,'s','MarkerFaceColor',[0.7 0.7 0.7],'MarkerEdgeColor','k');
+%             h2 = plot(nan,nan,'s','MarkerFaceColor',[0 0.447 0.741],'MarkerEdgeColor','k');
+% 
+%             legend([h1 h2],{'Persistence',ModelName},...
+%                 'Interpreter','none','Location','best')
 
         end
 
@@ -226,13 +243,15 @@ for v = 1:numel(Variables)
             ax.FontSize = 10;
 
             ylabel(MetricsLabels_bar{im})
-            title(MetricsLabels_bar{im})
+            title(sprintf('%s (H = %g h)', MetricsLabels_bar{im}, HorizonHours), ...
+            'FontSize',16)
+            %title(MetricsLabels_bar{im})
             grid on
         end
 
-        sgtitle(sprintf('%s-Global Metrics (H=%gh)',VarName,HorizonHours),...
-            'Interpreter','none',...
-            'FontSize',14,'FontWeight','bold')
+%         sgtitle(sprintf('H=%g h)',VarName,HorizonHours),...
+%             'Interpreter','none',...
+%             'FontSize',16,'FontWeight','bold')
 
         if contains(VarName,'30min')
             HorizonHours = H/2;
