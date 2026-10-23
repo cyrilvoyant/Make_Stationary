@@ -1,0 +1,71 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "wsem": "https://w3id.org/websemantic/ns#"
+  },
+  "@type": "SoftwareSourceCode",
+  "@id": "https://doi.org/10.5281/zenodo.21490743",
+  "name": "Make_Stationary: deseasonalization benchmark for renewable-energy time series (MATLAB)",
+  "description": "Tests whether removing the deterministic daily and annual cycle improves the final forecast of energy and weather series.",
+  "codeRepository": "https://github.com/cyrilvoyant/Make_Stationary",
+  "license": "GPL-3.0",
+  "programmingLanguage": "MATLAB",
+  "keywords": [
+    "deseasonalization",
+    "stationarity",
+    "extreme learning machine",
+    "renewable energy forecasting"
+  ],
+  "dateModified": "2026-10-23",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Maklewa Agoundedemba",
+      "@id": "https://orcid.org/0000-0001-7537-4080"
+    },
+    {
+      "@type": "Person",
+      "name": "Cyril Voyant",
+      "@id": "https://orcid.org/0000-0003-0242-7377"
+    },
+    {
+      "@type": "Person",
+      "name": "Milan Despotovic",
+      "@id": "https://orcid.org/0000-0003-3144-5945"
+    },
+    {
+      "@type": "Person",
+      "name": "Luis Antonio Garcia-Gutierrez",
+      "@id": "https://orcid.org/0000-0002-3480-1784"
+    },
+    {
+      "@type": "Person",
+      "name": "Gilles Notton",
+      "@id": "https://orcid.org/0000-0002-6267-9632"
+    }
+  ],
+  "wsem:declaresParameter": [
+    {
+      "@type": "PropertyValueSpecification",
+      "name": "variables",
+      "description": "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/",
+      "valueRequired": true
+    }
+  ],
+  "wsem:declaresOutput": [
+    {
+      "@type": "PropertyValueSpecification",
+      "name": "*_FULL.csv, Metrics.csv",
+      "description": "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)",
+      "valueRequired": true
+    },
+    {
+      "@type": "PropertyValueSpecification",
+      "name": "forecast metrics",
+      "description": "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)",
+      "valueRequired": true,
+      "unitText": "1",
+      "unitCode": "http://qudt.org/vocab/unit/UNITLESS"
+    }
+  ]
+}

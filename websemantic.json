@@ -1,0 +1,86 @@
+{
+  "descriptor": "websemantic-lite/0.1",
+  "generated": "2026-10-23",
+  "vocabulary": "https://w3id.org/websemantic/ns#",
+  "software": {
+    "name": "Make_Stationary",
+    "title": "Make_Stationary: deseasonalization benchmark for renewable-energy time series (MATLAB)",
+    "repository": "https://github.com/cyrilvoyant/Make_Stationary",
+    "conceptDOI": "https://doi.org/10.5281/zenodo.21490743",
+    "license": "GPL-3.0",
+    "programmingLanguage": "MATLAB",
+    "authors": [
+      {
+        "name": "Maklewa Agoundedemba",
+        "orcid": "https://orcid.org/0000-0001-7537-4080"
+      },
+      {
+        "name": "Cyril Voyant",
+        "orcid": "https://orcid.org/0000-0003-0242-7377"
+      },
+      {
+        "name": "Milan Despotovic",
+        "orcid": "https://orcid.org/0000-0003-3144-5945"
+      },
+      {
+        "name": "Luis Antonio Garcia-Gutierrez",
+        "orcid": "https://orcid.org/0000-0002-3480-1784"
+      },
+      {
+        "name": "Gilles Notton",
+        "orcid": "https://orcid.org/0000-0002-6267-9632"
+      }
+    ]
+  },
+  "article": {
+    "citation": "M. Agoundedemba, C. Voyant, M. Despotović, L. A. Garcia-Gutierrez, G. Notton. Does stationarization help? A frugal benchmark of deseasonalization for renewable energy forecasting",
+    "doi": null,
+    "status": "manuscript submitted; no result of it is reported here beyond the repository README"
+  },
+  "tasks": {
+    "supported": [
+      "test whether a deseasonalization method helps the final forecast"
+    ],
+    "out_of_scope": [
+      "results of the submitted manuscript"
+    ]
+  },
+  "inputs": [
+    {
+      "field": "variables",
+      "type": "set",
+      "required": true,
+      "definition": "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/"
+    }
+  ],
+  "outputs": [
+    {
+      "field": "*_FULL.csv, Metrics.csv",
+      "type": "table",
+      "required": true,
+      "definition": "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)"
+    },
+    {
+      "field": "forecast metrics",
+      "type": "table",
+      "required": true,
+      "definition": "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)",
+      "unit": "unit:UNITLESS",
+      "unit_symbol": "1",
+      "unit_iri": "http://qudt.org/vocab/unit/UNITLESS",
+      "quantity_kind_iri": "http://qudt.org/vocab/quantitykind/Dimensionless"
+    }
+  ],
+  "rules": [
+    "Never invent a value. Each input is given by the user, an exact unit conversion of a given value, or a documented default that the user explicitly accepts.",
+    "Use the canonical unit of each field; convert exactly and say so (for example 2 km -> 2000 m). Never mix a percentage and a fraction.",
+    "Ask when a request is ambiguous or a required input is missing; do not infer a number from a place name or a qualitative word.",
+    "Run the code unmodified. Report only what was actually computed, with quantity, unit and the input values used; never present a planned or unavailable run as a result.",
+    "State the scope and the limits below when you report a result.",
+    "Deseasonalization is a selective preprocessing option, to be kept only when it improves the final forecast."
+  ],
+  "limits": [
+    "One region, three years, horizons up to 6 hours; the README lists three differences with the manuscript."
+  ],
+  "full_contract": null
+}
