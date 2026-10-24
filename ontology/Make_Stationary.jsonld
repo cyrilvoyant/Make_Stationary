@@ -1,71 +1,293 @@
-{
-  "@context": {
-    "@vocab": "https://schema.org/",
-    "wsem": "https://w3id.org/websemantic/ns#"
+[
+  {
+    "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#in0",
+    "@type": [
+      "https://schema.org/PropertyValueSpecification",
+      "https://w3id.org/websemantic/ns#ParameterDefinition"
+    ],
+    "http://www.w3.org/2004/02/skos/core#definition": [
+      {
+        "@value": "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/"
+      }
+    ],
+    "http://www.w3.org/2004/02/skos/core#prefLabel": [
+      {
+        "@value": "variables"
+      }
+    ],
+    "https://schema.org/description": [
+      {
+        "@value": "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/"
+      }
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "variables"
+      }
+    ],
+    "https://schema.org/valueRequired": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#boolean",
+        "@value": true
+      }
+    ],
+    "https://w3id.org/websemantic/ns#apiVariable": [
+      {
+        "@value": "variables"
+      }
+    ]
   },
-  "@type": "SoftwareSourceCode",
-  "@id": "https://doi.org/10.5281/zenodo.21490743",
-  "name": "Make_Stationary: deseasonalization benchmark for renewable-energy time series (MATLAB)",
-  "description": "Tests whether removing the deterministic daily and annual cycle improves the final forecast of energy and weather series.",
-  "codeRepository": "https://github.com/cyrilvoyant/Make_Stationary",
-  "license": "GPL-3.0",
-  "programmingLanguage": "MATLAB",
-  "keywords": [
-    "deseasonalization",
-    "stationarity",
-    "extreme learning machine",
-    "renewable energy forecasting"
-  ],
-  "dateModified": "2026-10-23",
-  "author": [
-    {
-      "@type": "Person",
-      "name": "Maklewa Agoundedemba",
-      "@id": "https://orcid.org/0000-0001-7537-4080"
-    },
-    {
-      "@type": "Person",
-      "name": "Cyril Voyant",
-      "@id": "https://orcid.org/0000-0003-0242-7377"
-    },
-    {
-      "@type": "Person",
-      "name": "Milan Despotovic",
-      "@id": "https://orcid.org/0000-0003-3144-5945"
-    },
-    {
-      "@type": "Person",
-      "name": "Luis Antonio Garcia-Gutierrez",
-      "@id": "https://orcid.org/0000-0002-3480-1784"
-    },
-    {
-      "@type": "Person",
-      "name": "Gilles Notton",
-      "@id": "https://orcid.org/0000-0002-6267-9632"
-    }
-  ],
-  "wsem:declaresParameter": [
-    {
-      "@type": "PropertyValueSpecification",
-      "name": "variables",
-      "description": "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/",
-      "valueRequired": true
-    }
-  ],
-  "wsem:declaresOutput": [
-    {
-      "@type": "PropertyValueSpecification",
-      "name": "*_FULL.csv, Metrics.csv",
-      "description": "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)",
-      "valueRequired": true
-    },
-    {
-      "@type": "PropertyValueSpecification",
-      "name": "forecast metrics",
-      "description": "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)",
-      "valueRequired": true,
-      "unitText": "1",
-      "unitCode": "http://qudt.org/vocab/unit/UNITLESS"
-    }
-  ]
-}
+  {
+    "@id": "https://orcid.org/0000-0003-0242-7377",
+    "@type": [
+      "https://schema.org/Person"
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "Cyril Voyant"
+      }
+    ]
+  },
+  {
+    "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#software",
+    "@type": [
+      "https://schema.org/SoftwareSourceCode",
+      "https://w3id.org/websemantic/ns#Software"
+    ],
+    "http://purl.org/dc/terms/modified": [
+      {
+        "@value": "2026-10-23"
+      }
+    ],
+    "http://www.w3.org/2002/07/owl#sameAs": [
+      {
+        "@id": "https://doi.org/10.5281/zenodo.21490743"
+      }
+    ],
+    "https://schema.org/author": [
+      {
+        "@id": "https://orcid.org/0000-0001-7537-4080"
+      },
+      {
+        "@id": "https://orcid.org/0000-0002-3480-1784"
+      },
+      {
+        "@id": "https://orcid.org/0000-0002-6267-9632"
+      },
+      {
+        "@id": "https://orcid.org/0000-0003-0242-7377"
+      },
+      {
+        "@id": "https://orcid.org/0000-0003-3144-5945"
+      }
+    ],
+    "https://schema.org/codeRepository": [
+      {
+        "@id": "https://github.com/cyrilvoyant/Make_Stationary"
+      }
+    ],
+    "https://schema.org/dateModified": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#date",
+        "@value": "2026-10-23"
+      }
+    ],
+    "https://schema.org/description": [
+      {
+        "@value": "Tests whether removing the deterministic daily and annual cycle improves the final forecast of energy and weather series."
+      }
+    ],
+    "https://schema.org/identifier": [
+      {
+        "@id": "https://doi.org/10.5281/zenodo.21490743"
+      }
+    ],
+    "https://schema.org/keywords": [
+      {
+        "@value": "deseasonalization"
+      },
+      {
+        "@value": "extreme learning machine"
+      },
+      {
+        "@value": "renewable energy forecasting"
+      },
+      {
+        "@value": "stationarity"
+      }
+    ],
+    "https://schema.org/license": [
+      {
+        "@value": "GPL-3.0"
+      }
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "Make_Stationary: deseasonalization benchmark for renewable-energy time series (MATLAB)"
+      }
+    ],
+    "https://schema.org/programmingLanguage": [
+      {
+        "@value": "MATLAB"
+      }
+    ],
+    "https://w3id.org/websemantic/ns#conceptDOI": [
+      {
+        "@value": "https://doi.org/10.5281/zenodo.21490743"
+      }
+    ],
+    "https://w3id.org/websemantic/ns#declaresOutput": [
+      {
+        "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#out0"
+      },
+      {
+        "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#out1"
+      }
+    ],
+    "https://w3id.org/websemantic/ns#declaresParameter": [
+      {
+        "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#in0"
+      }
+    ]
+  },
+  {
+    "@id": "https://orcid.org/0000-0001-7537-4080",
+    "@type": [
+      "https://schema.org/Person"
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "Maklewa Agoundedemba"
+      }
+    ]
+  },
+  {
+    "@id": "https://orcid.org/0000-0002-3480-1784",
+    "@type": [
+      "https://schema.org/Person"
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "Luis Antonio Garcia-Gutierrez"
+      }
+    ]
+  },
+  {
+    "@id": "https://orcid.org/0000-0003-3144-5945",
+    "@type": [
+      "https://schema.org/Person"
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "Milan Despotovic"
+      }
+    ]
+  },
+  {
+    "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#out1",
+    "@type": [
+      "https://schema.org/PropertyValueSpecification",
+      "https://w3id.org/websemantic/ns#OutputVariable"
+    ],
+    "http://www.w3.org/2004/02/skos/core#definition": [
+      {
+        "@value": "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)"
+      }
+    ],
+    "http://www.w3.org/2004/02/skos/core#prefLabel": [
+      {
+        "@value": "forecast metrics"
+      }
+    ],
+    "https://schema.org/description": [
+      {
+        "@value": "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)"
+      }
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "forecast metrics"
+      }
+    ],
+    "https://schema.org/unitCode": [
+      {
+        "@id": "http://qudt.org/vocab/unit/UNITLESS"
+      }
+    ],
+    "https://schema.org/unitText": [
+      {
+        "@value": "1"
+      }
+    ],
+    "https://schema.org/valueRequired": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#boolean",
+        "@value": true
+      }
+    ],
+    "https://w3id.org/websemantic/ns#apiVariable": [
+      {
+        "@value": "forecast metrics"
+      }
+    ],
+    "https://w3id.org/websemantic/ns#canonicalUnit": [
+      {
+        "@id": "http://qudt.org/vocab/unit/UNITLESS"
+      }
+    ],
+    "https://w3id.org/websemantic/ns#quantityKind": [
+      {
+        "@id": "http://qudt.org/vocab/quantitykind/Dimensionless"
+      }
+    ]
+  },
+  {
+    "@id": "https://cyrilvoyant.github.io/ontology/Make_Stationary#out0",
+    "@type": [
+      "https://schema.org/PropertyValueSpecification",
+      "https://w3id.org/websemantic/ns#OutputVariable"
+    ],
+    "http://www.w3.org/2004/02/skos/core#definition": [
+      {
+        "@value": "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)"
+      }
+    ],
+    "http://www.w3.org/2004/02/skos/core#prefLabel": [
+      {
+        "@value": "*_FULL.csv, Metrics.csv"
+      }
+    ],
+    "https://schema.org/description": [
+      {
+        "@value": "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)"
+      }
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "*_FULL.csv, Metrics.csv"
+      }
+    ],
+    "https://schema.org/valueRequired": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#boolean",
+        "@value": true
+      }
+    ],
+    "https://w3id.org/websemantic/ns#apiVariable": [
+      {
+        "@value": "*_FULL.csv, Metrics.csv"
+      }
+    ]
+  },
+  {
+    "@id": "https://orcid.org/0000-0002-6267-9632",
+    "@type": [
+      "https://schema.org/Person"
+    ],
+    "https://schema.org/name": [
+      {
+        "@value": "Gilles Notton"
+      }
+    ]
+  }
+]

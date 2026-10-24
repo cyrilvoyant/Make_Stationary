@@ -1,48 +1,82 @@
-@prefix wsem: <https://w3id.org/websemantic/ns#> .
+# Public documentation only; aliases serialize the same graph.
+@prefix : <https://cyrilvoyant.github.io/ontology/Make_Stationary#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix qk: <http://qudt.org/vocab/quantitykind/> .
 @prefix schema: <https://schema.org/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix unit: <http://qudt.org/vocab/unit/> .
-@prefix qk: <http://qudt.org/vocab/quantitykind/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix : <https://cyrilvoyant.github.io/ontology/Make_Stationary#> .
+@prefix wsem: <https://w3id.org/websemantic/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Instances of the WebSemantic core vocabulary for Make_Stationary (generated 2026-10-23; documentation only).
-
-:software a wsem:Software, schema:SoftwareSourceCode ;
-    schema:name "Make_Stationary: deseasonalization benchmark for renewable-energy time series (MATLAB)" ;
+:software a schema:SoftwareSourceCode,
+        wsem:Software ;
+    dcterms:modified "2026-10-23" ;
+    owl:sameAs <https://doi.org/10.5281/zenodo.21490743> ;
+    schema:author <https://orcid.org/0000-0001-7537-4080>,
+        <https://orcid.org/0000-0002-3480-1784>,
+        <https://orcid.org/0000-0002-6267-9632>,
+        <https://orcid.org/0000-0003-0242-7377>,
+        <https://orcid.org/0000-0003-3144-5945> ;
     schema:codeRepository <https://github.com/cyrilvoyant/Make_Stationary> ;
-    wsem:conceptDOI "https://doi.org/10.5281/zenodo.21490743" ;
-    schema:identifier <https://doi.org/10.5281/zenodo.21490743> ;
-    schema:license "GPL-3.0" ;
-    schema:programmingLanguage "MATLAB" ;
+    schema:dateModified "2026-10-23"^^xsd:date ;
     schema:description "Tests whether removing the deterministic daily and annual cycle improves the final forecast of energy and weather series." ;
-    schema:author <https://orcid.org/0000-0001-7537-4080> ;
-    schema:author <https://orcid.org/0000-0003-0242-7377> ;
-    schema:author <https://orcid.org/0000-0003-3144-5945> ;
-    schema:author <https://orcid.org/0000-0002-3480-1784> ;
-    schema:author <https://orcid.org/0000-0002-6267-9632> ;
-    wsem:declaresParameter :in0 ;
-    wsem:declaresOutput :out0 ;
-    wsem:declaresOutput :out1 ;
-    dcterms:modified "2026-10-23" .
+    schema:identifier <https://doi.org/10.5281/zenodo.21490743> ;
+    schema:keywords "deseasonalization",
+        "extreme learning machine",
+        "renewable energy forecasting",
+        "stationarity" ;
+    schema:license "GPL-3.0" ;
+    schema:name "Make_Stationary: deseasonalization benchmark for renewable-energy time series (MATLAB)" ;
+    schema:programmingLanguage "MATLAB" ;
+    wsem:conceptDOI "https://doi.org/10.5281/zenodo.21490743" ;
+    wsem:declaresOutput :out0,
+        :out1 ;
+    wsem:declaresParameter :in0 .
 
-<https://orcid.org/0000-0001-7537-4080> a schema:Person ; schema:name "Maklewa Agoundedemba" .
-<https://orcid.org/0000-0003-0242-7377> a schema:Person ; schema:name "Cyril Voyant" .
-<https://orcid.org/0000-0003-3144-5945> a schema:Person ; schema:name "Milan Despotovic" .
-<https://orcid.org/0000-0002-3480-1784> a schema:Person ; schema:name "Luis Antonio Garcia-Gutierrez" .
-<https://orcid.org/0000-0002-6267-9632> a schema:Person ; schema:name "Gilles Notton" .
-:in0 a wsem:ParameterDefinition ;
+:in0 a schema:PropertyValueSpecification,
+        wsem:ParameterDefinition ;
+    skos:definition "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/" ;
     skos:prefLabel "variables" ;
-    wsem:apiVariable "variables" ;
-    skos:definition "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/" .
-:out0 a wsem:OutputVariable ;
+    schema:description "nine Corsican series 2021–2023 (GHI, PV, load, wind power, wind speed, temperature, at 30 min or 1 h), included in Data/" ;
+    schema:name "variables" ;
+    schema:valueRequired true ;
+    wsem:apiVariable "variables" .
+
+:out0 a schema:PropertyValueSpecification,
+        wsem:OutputVariable ;
+    skos:definition "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)" ;
     skos:prefLabel "*_FULL.csv, Metrics.csv" ;
-    wsem:apiVariable "*_FULL.csv, Metrics.csv" ;
-    skos:definition "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)" .
-:out1 a wsem:OutputVariable ;
-    skos:prefLabel "forecast metrics" ;
-    wsem:apiVariable "forecast metrics" ;
+    schema:description "residuals and stationarity diagnostics (PACF, entropy, Lyapunov exponent)" ;
+    schema:name "*_FULL.csv, Metrics.csv" ;
+    schema:valueRequired true ;
+    wsem:apiVariable "*_FULL.csv, Metrics.csv" .
+
+:out1 a schema:PropertyValueSpecification,
+        wsem:OutputVariable ;
     skos:definition "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)" ;
+    skos:prefLabel "forecast metrics" ;
+    schema:description "nRMSE, nMAE, nMBE, R², NICE by method and horizon (1 to 6 h)" ;
+    schema:name "forecast metrics" ;
+    schema:unitCode unit:UNITLESS ;
+    schema:unitText "1" ;
+    schema:valueRequired true ;
+    wsem:apiVariable "forecast metrics" ;
     wsem:canonicalUnit unit:UNITLESS ;
     wsem:quantityKind qk:Dimensionless .
+
+<https://orcid.org/0000-0001-7537-4080> a schema:Person ;
+    schema:name "Maklewa Agoundedemba" .
+
+<https://orcid.org/0000-0002-3480-1784> a schema:Person ;
+    schema:name "Luis Antonio Garcia-Gutierrez" .
+
+<https://orcid.org/0000-0002-6267-9632> a schema:Person ;
+    schema:name "Gilles Notton" .
+
+<https://orcid.org/0000-0003-0242-7377> a schema:Person ;
+    schema:name "Cyril Voyant" .
+
+<https://orcid.org/0000-0003-3144-5945> a schema:Person ;
+    schema:name "Milan Despotovic" .
+
